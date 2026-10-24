@@ -17,7 +17,11 @@ export default async function EmbedBookingPage({
   const { slug } = await params;
 
   const [entrepreneur] = await db
-    .select({ businessName: schema.entrepreneurs.businessName, brandColor: schema.entrepreneurs.brandColor })
+    .select({
+      businessName: schema.entrepreneurs.businessName,
+      brandColor: schema.entrepreneurs.brandColor,
+      logoUrl: schema.entrepreneurs.logoUrl,
+    })
     .from(schema.entrepreneurs)
     .where(eq(schema.entrepreneurs.slug, slug))
     .limit(1);
@@ -26,7 +30,7 @@ export default async function EmbedBookingPage({
 
   return (
     <main className="h-full bg-surface p-4" style={brandCssVars(entrepreneur.brandColor)}>
-      <BookingEntry slug={slug} businessName={entrepreneur.businessName} />
+      <BookingEntry slug={slug} businessName={entrepreneur.businessName} logoUrl={entrepreneur.logoUrl} />
     </main>
   );
 }

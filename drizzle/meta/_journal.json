@@ -29,6 +29,13 @@
       "when": 1792820586829,
       "tag": "0003_concerned_shinobi_shaw",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792820838273,
+      "tag": "0004_last_rocket_raccoon",
+      "breakpoints": true
     }
   ]
 }

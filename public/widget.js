@@ -51,6 +51,7 @@
     '<svg viewBox="0 0 24 24" fill="none" width="24" height="24"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8A2.5 2.5 0 0 1 17.5 17H9l-4 3.5V6.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>';
   var iconClose =
     '<svg viewBox="0 0 24 24" fill="none" width="22" height="22"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+  var logoHtml = null; // rempli une fois le logo de l'entrepreneur récupéré, s'il en a un
   bubble.innerHTML = iconOpen;
 
   var panelWrap = document.createElement("div");
@@ -69,7 +70,7 @@
   function setOpen(next) {
     open = next;
     panelWrap.style.display = open ? "block" : "none";
-    bubble.innerHTML = open ? iconClose : iconOpen;
+    bubble.innerHTML = open ? iconClose : logoHtml || iconOpen;
     bubble.setAttribute("aria-label", open ? "Fermer l'assistant" : "Ouvrir l'assistant");
   }
 
@@ -90,6 +91,15 @@
     .then(function (data) {
       if (data && data.brandColor) {
         bubble.style.background = data.brandColor;
+      }
+      if (data && data.logoUrl) {
+        logoHtml =
+          '<img src="' +
+          data.logoUrl +
+          '" alt="" style="width:32px;height:32px;border-radius:9999px;object-fit:cover;" />';
+        bubble.style.padding = "0";
+        bubble.style.overflow = "hidden";
+        if (!open) bubble.innerHTML = logoHtml;
       }
     })
     .catch(function () {

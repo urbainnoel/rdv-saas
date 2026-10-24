@@ -10,16 +10,28 @@ type Mode = "choice" | "chat" | "form";
 export default function BookingEntry({
   slug,
   businessName,
+  logoUrl,
 }: {
   slug: string;
   businessName: string;
+  logoUrl?: string | null;
 }) {
   const [mode, setMode] = useState<Mode>("choice");
 
   if (mode === "choice") {
     return (
       <div className="animate-rise">
-        <p className="font-display text-2xl italic text-ink">{businessName}</p>
+        <div className="flex items-center gap-3">
+          {logoUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoUrl}
+              alt={businessName}
+              className="h-10 w-10 shrink-0 rounded-lg border border-border object-contain"
+            />
+          )}
+          <p className="font-display text-2xl italic text-ink">{businessName}</p>
+        </div>
         <p className="mt-1 text-ink-soft">Comment préférez-vous faire ?</p>
 
         <div className="mt-6 grid gap-3 sm:grid-cols-2">

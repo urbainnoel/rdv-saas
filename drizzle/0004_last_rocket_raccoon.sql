@@ -1,0 +1,1 @@
+ALTER TABLE "entrepreneurs" ADD COLUMN "logo_url" text;

@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { getCurrentEntrepreneur } from "@/lib/auth";
 import WidgetSnippet from "./WidgetSnippet";
 import BrandColorPicker from "./BrandColorPicker";
+import LogoUploader from "./LogoUploader";
 
 export default async function WidgetPage() {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -24,6 +25,7 @@ export default async function WidgetPage() {
       <WidgetSnippet snippet={snippet} />
 
       <BrandColorPicker initialColor={entrepreneur.brandColor} />
+      <LogoUploader initialLogoUrl={entrepreneur.logoUrl} />
 
       <div className="mt-6 space-y-3 text-sm text-ink-soft">
         <p>

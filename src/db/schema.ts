@@ -36,6 +36,10 @@ export const entrepreneurs = pgTable(
     // page publique, à l'embed et à la bulle du widget. null = couleur par
     // défaut de l'app (vert forêt).
     brandColor: text("brand_color"),
+    // Logo de l'entreprise, stocké directement en data URL (base64) — pas de
+    // service de stockage externe nécessaire, l'image est redimensionnée et
+    // compressée côté client avant l'envoi pour rester légère.
+    logoUrl: text("logo_url"),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

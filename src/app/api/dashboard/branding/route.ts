@@ -4,22 +4,44 @@ import { eq } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
 import { isValidHexColor } from "@/lib/color";
 
+// Le logo est envoyé en data URL (base64), déjà redimensionné/compressé côté
+// client — on limite tout de même la taille acceptée côté serveur par
+// sécurité (~500 Ko encodé, largement suffisant pour un logo web).
+const MAX_LOGO_LENGTH = 500_000;
+
 export async function PATCH(req: NextRequest) {
   const entrepreneur = await getCurrentEntrepreneur();
   if (!entrepreneur) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const body = await req.json().catch(() => null);
-  const { brandColor } = body ?? {};
+  const updates: Partial<{ brandColor: string | null; logoUrl: string | null }> = {};
 
-  // null = revenir à la couleur par défaut de l'app.
-  if (brandColor !== null && !isValidHexColor(brandColor ?? "")) {
-    return NextResponse.json({ error: "Couleur invalide (format attendu : #1f4d3d)." }, { status: 400 });
+  if (body && "brandColor" in body) {
+    const { brandColor } = body;
+    if (brandColor !== null && !isValidHexColor(brandColor ?? "")) {
+      return NextResponse.json({ error: "Couleur invalide (format attendu : #1f4d3d)." }, { status: 400 });
+    }
+    updates.brandColor = brandColor ?? null;
   }
 
-  await db
-    .update(schema.entrepreneurs)
-    .set({ brandColor: brandColor ?? null })
-    .where(eq(schema.entrepreneurs.id, entrepreneur.id));
+  if (body && "logoUrl" in body) {
+    const { logoUrl } = body;
+    if (logoUrl !== null) {
+      if (typeof logoUrl !== "string" || !logoUrl.startsWith("data:image/")) {
+        return NextResponse.json({ error: "Image invalide." }, { status: 400 });
+      }
+      if (logoUrl.length > MAX_LOGO_LENGTH) {
+        return NextResponse.json({ error: "Le logo est trop volumineux." }, { status: 400 });
+      }
+    }
+    updates.logoUrl = logoUrl ?? null;
+  }
 
-  return NextResponse.json({ ok: true, brandColor: brandColor ?? null });
+  if (Object.keys(updates).length === 0) {
+    return NextResponse.json({ error: "Rien à mettre à jour." }, { status: 400 });
+  }
+
+  await db.update(schema.entrepreneurs).set(updates).where(eq(schema.entrepreneurs.id, entrepreneur.id));
+
+  return NextResponse.json({ ok: true, ...updates });
 }

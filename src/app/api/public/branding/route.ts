@@ -13,7 +13,11 @@ export async function GET(req: NextRequest) {
   }
 
   const [entrepreneur] = await db
-    .select({ businessName: schema.entrepreneurs.businessName, brandColor: schema.entrepreneurs.brandColor })
+    .select({
+      businessName: schema.entrepreneurs.businessName,
+      brandColor: schema.entrepreneurs.brandColor,
+      logoUrl: schema.entrepreneurs.logoUrl,
+    })
     .from(schema.entrepreneurs)
     .where(eq(schema.entrepreneurs.slug, slug))
     .limit(1);
@@ -25,5 +29,6 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     businessName: entrepreneur.businessName,
     brandColor: entrepreneur.brandColor ?? "#1f4d3d",
+    logoUrl: entrepreneur.logoUrl ?? null,
   });
 }
