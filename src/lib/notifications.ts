@@ -1,7 +1,15 @@
 // Envoi des notifications (email + WhatsApp) aux clients et entrepreneurs.
-// Pour l'instant : les envois réels (Resend, WhatsApp Business API) seront
-// branchés une fois les comptes/API keys configurés. En attendant, on logue
-// le message qui AURAIT été envoyé, pour pouvoir tester tout le flux.
+// Email : branché sur Resend (gratuit). WhatsApp : toujours un log en
+// attendant un compte Meta Business vérifié (hors scope pour l'instant).
+//
+// Important à savoir sur Resend sans domaine vérifié : l'expéditeur
+// "onboarding@resend.dev" ne peut envoyer QUE vers l'adresse e-mail du
+// compte Resend lui-même (mode test anti-spam de Resend). Donc pour
+// l'instant, seules les notifications vers l'ENTREPRENEUR fonctionnent
+// réellement si son email de notification correspond au compte Resend ;
+// les emails vers ses CLIENTS (adresses arbitraires) resteront en échec
+// silencieux (on logue l'erreur) jusqu'à ce qu'un nom de domaine soit
+// vérifié sur resend.com/domains.
 
 import { schema } from "@/db";
 import { DEFAULT_MESSAGE_TEMPLATES, MessageTemplateType } from "./enums";
@@ -9,6 +17,8 @@ import { DEFAULT_MESSAGE_TEMPLATES, MessageTemplateType } from "./enums";
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 type Client = typeof schema.clients.$inferSelect;
 type Appointment = typeof schema.appointments.$inferSelect;
+
+const RESEND_FROM = "RDV Assistant <onboarding@resend.dev>";
 
 function formatMessage(
   template: string,
@@ -31,10 +41,50 @@ function buildVars(entrepreneur: Entrepreneur, client: Client, appointment: Appo
   };
 }
 
-async function dispatch(channel: "email" | "whatsapp", to: string | null, message: string) {
+function notificationEmailFor(entrepreneur: Entrepreneur): string {
+  return entrepreneur.notificationEmail || entrepreneur.email;
+}
+
+async function sendEmail(to: string, subject: string, message: string) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+
+  if (!apiKey) {
+    console.log(`[NOTIFICATION:EMAIL] (Resend non configuré) -> ${to}\n${subject}\n${message}\n`);
+    return;
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from: RESEND_FROM,
+      to,
+      subject,
+      text: message,
+    }),
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    // Cas attendu sans domaine vérifié : Resend refuse d'envoyer à une
+    // adresse qui n'est pas celle du compte. On logue sans faire planter
+    // le reste du flux (la réservation/le RDV doit réussir quoi qu'il arrive).
+    console.error(`[Resend] Échec envoi à ${to} (HTTP ${res.status}): ${text.slice(0, 300)}`);
+    return;
+  }
+}
+
+async function dispatch(channel: "email" | "whatsapp", to: string | null, subject: string, message: string) {
   if (!to) return;
-  // TODO: brancher Resend (email) et l'API WhatsApp Business ici.
-  console.log(`[NOTIFICATION:${channel.toUpperCase()}] -> ${to}\n${message}\n`);
+  if (channel === "email") {
+    await sendEmail(to, subject, message);
+  } else {
+    // TODO: brancher l'API WhatsApp Business ici une fois le compte Meta prêt.
+    console.log(`[NOTIFICATION:WHATSAPP] (non branché) -> ${to}\n${message}\n`);
+  }
 }
 
 export async function sendAppointmentConfirmation({
@@ -49,8 +99,15 @@ export async function sendAppointmentConfirmation({
   const vars = buildVars(entrepreneur, client, appointment);
   const message = formatMessage(DEFAULT_MESSAGE_TEMPLATES.CONFIRMATION, vars);
 
-  await dispatch("email", client.email, message);
-  await dispatch("whatsapp", client.phone, message);
+  await dispatch("email", client.email, `Rendez-vous confirmé avec ${entrepreneur.businessName}`, message);
+  await dispatch("whatsapp", client.phone, "", message);
+
+  await dispatch(
+    "email",
+    notificationEmailFor(entrepreneur),
+    "Nouveau rendez-vous réservé",
+    `${client.fullName} vient de réserver un créneau le ${vars.date} à ${vars.heure}.`
+  );
 }
 
 export async function sendReminder({
@@ -67,13 +124,14 @@ export async function sendReminder({
   const vars = buildVars(entrepreneur, client, appointment);
   const message = formatMessage(DEFAULT_MESSAGE_TEMPLATES[type], vars);
 
-  await dispatch("email", client.email, message);
-  await dispatch("whatsapp", client.phone, message);
+  await dispatch("email", client.email, `Rappel de votre rendez-vous — ${entrepreneur.businessName}`, message);
+  await dispatch("whatsapp", client.phone, "", message);
 
   // Notifier aussi l'entrepreneur lui-même (rappel bidirectionnel)
   await dispatch(
     "email",
-    entrepreneur.email,
+    notificationEmailFor(entrepreneur),
+    "Rappel de rendez-vous",
     `Rappel : RDV avec ${client.fullName} le ${vars.date} à ${vars.heure}.`
   );
 }
@@ -90,7 +148,8 @@ export async function notifyUnansweredQuestion({
 }) {
   await dispatch(
     "email",
-    entrepreneur.email,
+    notificationEmailFor(entrepreneur),
+    "Une question sans réponse sur ton assistant",
     `Un client a posé une question à ton assistant sans réponse disponible :\n« ${question} »\n\nPense à y répondre toi-même, et à l'ajouter à ta FAQ si elle revient souvent.`
   );
 }
@@ -109,7 +168,8 @@ export async function notifyNewLead({
 }) {
   await dispatch(
     "email",
-    entrepreneur.email,
+    notificationEmailFor(entrepreneur),
+    "Nouveau prospect via ton assistant",
     `Nouveau prospect intéressé via ton assistant : ${leadName} (${leadContact}).\n\nIl/elle n'a pas encore réservé — pense à le/la recontacter.`
   );
 }

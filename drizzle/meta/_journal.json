@@ -36,6 +36,13 @@
       "when": 1792820838273,
       "tag": "0004_last_rocket_raccoon",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792821163987,
+      "tag": "0005_minor_carlie_cooper",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ import {
   LogoutIcon,
   TagIcon,
   CodeIcon,
+  SettingsIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
@@ -21,6 +22,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/templates", label: "Messages", icon: MessageIcon },
   { href: "/dashboard/knowledge-base", label: "Bibliothèque assistant", icon: AssistantIcon },
   { href: "/dashboard/widget", label: "Intégrer sur mon site", icon: CodeIcon },
+  { href: "/dashboard/settings", label: "Paramètres", icon: SettingsIcon },
 ];
 
 export default function Sidebar({

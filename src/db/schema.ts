@@ -40,6 +40,11 @@ export const entrepreneurs = pgTable(
     // service de stockage externe nécessaire, l'image est redimensionnée et
     // compressée côté client avant l'envoi pour rester légère.
     logoUrl: text("logo_url"),
+    // Adresse qui reçoit les notifications liées aux RDV (confirmations,
+    // rappels, prospects, questions sans réponse) — distincte de l'email de
+    // connexion si l'entrepreneur préfère recevoir ça ailleurs. null = on
+    // utilise l'email de connexion par défaut.
+    notificationEmail: text("notification_email"),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
