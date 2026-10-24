@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { askAssistant, type ChatMessage } from "@/lib/chat";
 import { notifyUnansweredQuestion } from "@/lib/notifications";
 
@@ -26,15 +26,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
   }
 
-  const entries = await db
-    .select({ question: schema.knowledgeBaseEntries.question, answer: schema.knowledgeBaseEntries.answer })
-    .from(schema.knowledgeBaseEntries)
-    .where(eq(schema.knowledgeBaseEntries.entrepreneurId, entrepreneur.id));
+  const [entries, services] = await Promise.all([
+    db
+      .select({ question: schema.knowledgeBaseEntries.question, answer: schema.knowledgeBaseEntries.answer })
+      .from(schema.knowledgeBaseEntries)
+      .where(eq(schema.knowledgeBaseEntries.entrepreneurId, entrepreneur.id)),
+    db
+      .select({ name: schema.services.name, description: schema.services.description })
+      .from(schema.services)
+      .where(and(eq(schema.services.entrepreneurId, entrepreneur.id), eq(schema.services.archived, false))),
+  ]);
 
   try {
     const { answer, forward } = await askAssistant({
       businessName: entrepreneur.businessName,
+      slug: entrepreneur.slug,
       entries,
+      services,
       history: body.messages,
     });
 
