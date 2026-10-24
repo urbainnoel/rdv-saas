@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
-import BookingWidget from "./BookingWidget";
-import ChatWidget from "./ChatWidget";
+import BookingEntry from "./BookingEntry";
 
 export default async function BookingPage({
   params,
@@ -22,9 +21,8 @@ export default async function BookingPage({
   return (
     <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:py-16">
       <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">
-        <BookingWidget slug={slug} />
+        <BookingEntry slug={slug} businessName={entrepreneur.businessName} />
       </div>
-      <ChatWidget slug={slug} businessName={entrepreneur.businessName} />
     </main>
   );
 }

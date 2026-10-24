@@ -46,3 +46,44 @@ body {
   outline: 2px solid var(--color-forest);
   outline-offset: 2px;
 }
+
+/* Une seule entrée orchestrée au chargement (choix d'entrée de la page
+   publique), plutôt que des animations éparpillées sur chaque élément. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-rise {
+  animation: rise 0.45s ease-out;
+}
+
+/* Indicateur de frappe de l'assistant (trois points qui respirent). */
+@keyframes typing-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  40% {
+    opacity: 1;
+    transform: translateY(-2px);
+  }
+}
+.animate-typing-dot {
+  animation: typing-dot 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise,
+  .animate-typing-dot,
+  .animate-ping {
+    animation: none !important;
+  }
+}
