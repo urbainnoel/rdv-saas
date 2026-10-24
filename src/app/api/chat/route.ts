@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   }));
 
   try {
-    const { answer, forward, lead, booking } = await askAssistant({
+    const { answer, forward, lead, booking, bookingExtractionFailed } = await askAssistant({
       businessName: entrepreneur.businessName,
       slug: entrepreneur.slug,
       entries,
@@ -75,7 +75,14 @@ export async function POST(req: NextRequest) {
 
     let finalAnswer = answer;
 
-    if (booking) {
+    if (bookingExtractionFailed) {
+      // Le modèle a essayé de réserver mais le nom/contact extraits ne sont
+      // pas fiables (ex: fusionnés par erreur) — on ne crée surtout pas de
+      // rendez-vous avec des données douteuses, et on ne laisse pas passer
+      // une réponse du modèle qui prétendrait à tort que c'est confirmé.
+      finalAnswer =
+        "Pardon, je n'ai pas bien saisi votre nom et votre contact. Pouvez-vous me les redonner clairement, par exemple : « Fatoumata Diallo, fatou@email.com » ?";
+    } else if (booking) {
       const slot = flatSlots[booking.slotIndex - 1];
 
       if (!slot) {
@@ -115,6 +122,16 @@ export async function POST(req: NextRequest) {
             " ?";
         }
       }
+    }
+
+    // Dernier filet : si le modèle n'a tenté aucune réservation (ni booking
+    // valide, ni échec d'extraction détecté) mais que sa réponse ressemble
+    // quand même à une confirmation, on ne la laisse pas passer telle
+    // quelle — mieux vaut clarifier que de laisser croire au client que
+    // c'est réservé alors que rien n'a été créé.
+    if (!booking && !bookingExtractionFailed && /confirm|réserv|c'est not/i.test(finalAnswer)) {
+      finalAnswer =
+        "Pour finaliser votre réservation, dites-moi le créneau que vous préférez ainsi que votre nom et un moyen de vous contacter (téléphone ou email).";
     }
 
     if (forward && !booking) {

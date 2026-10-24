@@ -22,7 +22,26 @@ export type AssistantResult = {
   forward: boolean;
   lead: { name: string; contact: string } | null;
   booking: { slotIndex: number; clientName: string; clientContact: string; serviceName: string | null } | null;
+  // true si le modèle a tenté de réserver (créneau choisi) mais que le nom
+  // et/ou le contact extraits ne passent pas la validation — signale à
+  // l'appelant qu'il doit remplacer la réponse du modèle (qui peut prétendre
+  // à tort que c'est confirmé) par un message demandant de reformuler.
+  bookingExtractionFailed: boolean;
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_RE = /^\+?[\d\s().-]{6,20}$/;
+
+function isValidContact(value: string): boolean {
+  return EMAIL_RE.test(value) || PHONE_RE.test(value);
+}
+
+function isValidName(value: string): boolean {
+  if (value.length < 2 || value.length > 60) return false;
+  if (value.includes("@")) return false; // probablement un email mal rangé dans le mauvais champ
+  if (/\d{4,}/.test(value)) return false; // probablement un numéro de téléphone mal rangé
+  return true;
+}
 
 function buildSystemPrompt(
   businessName: string,
@@ -84,7 +103,11 @@ Quand le client veut réserver : propose-lui un ou deux créneaux pertinents par
 - Mets le numéro du créneau choisi dans "booking_slot_index" (le numéro exact de la liste ci-dessus).
 - Mets son nom dans "booking_client_name" et son contact dans "booking_client_contact".
 - Mets le service choisi dans "booking_service_name" si pertinent (sinon null).
-Ne remplis "booking_slot_index" QUE sur le message où tu as TOUT (créneau choisi + nom + contact) et où le client a clairement confirmé vouloir réserver — jamais en cours de discussion ou par supposition. Dans ton "answer", confirme chaleureusement comme si c'était déjà réservé (le système finalise automatiquement derrière). Si aucun créneau ne convient au client ou si la liste est vide, propose-lui plutôt de laisser son contact pour être recontacté (volet 4).
+Ne remplis "booking_slot_index" QUE sur le message où tu as TOUT (créneau choisi + nom + contact) et où le client a clairement confirmé vouloir réserver — jamais en cours de discussion ou par supposition.
+
+Attention à bien séparer le nom et le contact quand le client les donne dans un seul message (ex: "Noel urbainnkg@gmail.com" → booking_client_name = "Noel", booking_client_contact = "urbainnkg@gmail.com" — ne les fusionne JAMAIS en un seul champ, et ne mets JAMAIS un nom dans le champ contact ou l'inverse). Le contact doit être soit une adresse email valide (avec un @ et un point), soit un numéro de téléphone (uniquement des chiffres, espaces et +) — rien d'autre.
+
+Ta phrase de confirmation dans "answer" DOIT correspondre exactement à ce que tu mets dans les champs booking_* du même message JSON : ne dis jamais "c'est confirmé" si tu ne remplis pas booking_slot_index, booking_client_name ET booking_client_contact correctement dans ce même message — le système ne crée le rendez-vous QUE si ces champs sont corrects, donc une confirmation orale sans ces champs induirait le client en erreur. Si tu n'es pas sûr d'avoir bien compris le nom ou le contact, redemande-le plutôt que de deviner. Si aucun créneau ne convient au client ou si la liste est vide, propose-lui plutôt de laisser son contact pour être recontacté (volet 4).
 
 4. Capturer le contact d'un prospect intéressé qui ne réserve pas tout de suite. Si le client montre un vrai intérêt (il pose des questions précises sur un service, dit "je vais réfléchir", "je rappellerai", "c'est combien" etc.) mais ne réserve pas, demande-lui gentiment son prénom et un moyen de le recontacter (téléphone ou email) pour que ${businessName} puisse le relancer. Ne le demande qu'une fois par conversation, jamais de façon insistante, et jamais pour une simple question factuelle sans intérêt commercial. Si le client donne son prénom et son contact à un moment de la conversation, renvoie-les dans les champs lead_name/lead_contact (sinon laisse-les à null). Ne remplis PAS lead_name/lead_contact si tu as déjà rempli booking_slot_index pour ce même message (la réservation suffit, pas besoin de dupliquer).
 
@@ -133,6 +156,7 @@ export async function askAssistant({
       forward: true,
       lead: null,
       booking: null,
+      bookingExtractionFailed: false,
     };
   }
 
@@ -187,10 +211,11 @@ export async function askAssistant({
             forward: false,
             lead: null,
             booking: null,
+            bookingExtractionFailed: false,
           };
         }
         // Réponse en texte libre (pas du JSON) : on l'affiche telle quelle.
-        return { answer: trimmed, forward: false, lead: null, booking: null };
+        return { answer: trimmed, forward: false, lead: null, booking: null, bookingExtractionFailed: false };
       }
     } catch {
       // Le corps n'était pas du JSON exploitable — on tombe dans l'erreur générique ci-dessous.
@@ -212,21 +237,28 @@ export async function askAssistant({
     const bookingContact = String(parsed.booking_client_contact ?? "").trim();
     const bookingServiceName = String(parsed.booking_service_name ?? "").trim();
 
-    const booking =
-      Number.isInteger(slotIndex) && slotIndex > 0 && bookingName && bookingContact
-        ? {
-            slotIndex,
-            clientName: bookingName,
-            clientContact: bookingContact,
-            serviceName: bookingServiceName || null,
-          }
-        : null;
+    // Le modèle a tenté une réservation (créneau choisi) : on ne la valide
+    // que si le nom et le contact extraits ont vraiment la forme attendue —
+    // sinon on refuse la réservation plutôt que de créer un rendez-vous avec
+    // des données incohérentes (ex: nom et email fusionnés par erreur).
+    const attemptedBooking = Number.isInteger(slotIndex) && slotIndex > 0 && bookingName && bookingContact;
+    const bookingValid = attemptedBooking && isValidName(bookingName) && isValidContact(bookingContact);
+
+    const booking = bookingValid
+      ? {
+          slotIndex,
+          clientName: bookingName,
+          clientContact: bookingContact,
+          serviceName: bookingServiceName || null,
+        }
+      : null;
 
     return {
       answer: String(parsed.answer ?? "").trim() || "Je n'ai pas compris, pouvez-vous reformuler ?",
       forward: Boolean(parsed.forward),
       lead: !booking && leadName && leadContact ? { name: leadName, contact: leadContact } : null,
       booking,
+      bookingExtractionFailed: Boolean(attemptedBooking) && !bookingValid,
     };
   } catch {
     // Si le modèle n'a pas renvoyé un JSON strict, on affiche quand même le texte brut.
@@ -235,6 +267,7 @@ export async function askAssistant({
       forward: true,
       lead: null,
       booking: null,
+      bookingExtractionFailed: false,
     };
   }
 }
