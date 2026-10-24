@@ -6,7 +6,7 @@
 // IA utilisée : Groq (gratuite, API compatible OpenAI, modèles Llama).
 
 const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
-const MODEL = "llama-3.3-70b-versatile";
+const MODEL = "llama-3.1-8b-instant";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
@@ -64,7 +64,7 @@ export async function askAssistant({
   services: ServiceInfo[];
   history: ChatMessage[];
 }): Promise<{ answer: string; forward: boolean }> {
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.GROQ_API_KEY?.trim();
 
   if (!apiKey) {
     return {
@@ -96,7 +96,11 @@ export async function askAssistant({
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
-    throw new Error(`Groq API error (${res.status}): ${text}`);
+    // On logue le corps complet nous-mêmes (les logs Vercel tronquent parfois
+    // les objets imbriqués dans le message d'erreur), pour pouvoir diagnostiquer
+    // précisément (modèle invalide, clé invalide, etc.) si ça se reproduit.
+    console.error(`[Groq] HTTP ${res.status} — modèle "${MODEL}" — réponse brute:`, text);
+    throw new Error(`Groq API error (${res.status}): ${text.slice(0, 500)}`);
   }
 
   const data = await res.json();
