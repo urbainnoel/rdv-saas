@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/session";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { emailVerificationRequired } from "@/lib/email-verification";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -38,6 +39,18 @@ export async function POST(req: NextRequest) {
   const valid = await bcrypt.compare(password, entrepreneur.passwordHash);
   if (!valid) {
     return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
+  }
+
+  // Le mot de passe est vérifié AVANT ce contrôle : on ne révèle donc pas
+  // à un inconnu qu'un compte existe et attend sa confirmation.
+  if (emailVerificationRequired() && !entrepreneur.emailVerifiedAt) {
+    return NextResponse.json(
+      {
+        error: "Confirme d'abord ton adresse email : ouvre le lien que nous t'avons envoyé.",
+        needsVerification: true,
+      },
+      { status: 403 }
+    );
   }
 
   await createSession({ entrepreneurId: entrepreneur.id });

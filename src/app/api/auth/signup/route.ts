@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/session";
 import { DEFAULT_MESSAGE_TEMPLATES } from "@/lib/enums";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { emailVerificationRequired, sendVerificationEmail } from "@/lib/email-verification";
 
 function slugify(input: string): string {
   return input
@@ -71,7 +72,14 @@ export async function POST(req: NextRequest) {
 
   const [entrepreneur] = await db
     .insert(schema.entrepreneurs)
-    .values({ email, passwordHash, businessName, slug })
+    .values({
+      email,
+      passwordHash,
+      businessName,
+      slug,
+      // Sans confirmation obligatoire, le compte est considéré confirmé d'office.
+      emailVerifiedAt: emailVerificationRequired() ? null : new Date(),
+    })
     .returning();
 
   // Templates de messages par défaut
@@ -82,6 +90,12 @@ export async function POST(req: NextRequest) {
       content,
       enabled: true,
     });
+  }
+
+  if (emailVerificationRequired()) {
+    // Pas de session tant que l'adresse n'est pas confirmée.
+    await sendVerificationEmail(entrepreneur, req.nextUrl.origin);
+    return NextResponse.json({ needsVerification: true, email }, { status: 201 });
   }
 
   await createSession({ entrepreneurId: entrepreneur.id });

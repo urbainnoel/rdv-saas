@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
+import ResendVerification from "@/components/ResendVerification";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -25,6 +27,10 @@ export default function SignupPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erreur lors de l'inscription.");
+      if (data.needsVerification) {
+        setPendingEmail(email);
+        return;
+      }
       router.push("/dashboard");
       router.refresh();
     } catch (err) {
@@ -32,6 +38,23 @@ export default function SignupPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  if (pendingEmail) {
+    return (
+      <main className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center px-6 py-10">
+        <div className="mb-8">
+          <BrandMark />
+        </div>
+        <h1 className="font-display text-2xl italic text-ink">Vérifie ta boîte mail</h1>
+        <p className="mt-3 text-sm leading-relaxed text-ink-soft">
+          Nous avons envoyé un lien de confirmation à{" "}
+          <span className="font-medium text-ink">{pendingEmail}</span>. Ouvre-le pour activer ton
+          compte. Pense à regarder dans les spams.
+        </p>
+        <ResendVerification email={pendingEmail} />
+      </main>
+    );
   }
 
   return (

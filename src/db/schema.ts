@@ -45,6 +45,11 @@ export const entrepreneurs = pgTable(
     // connexion si l'entrepreneur préfère recevoir ça ailleurs. null = on
     // utilise l'email de connexion par défaut.
     notificationEmail: text("notification_email"),
+    // Confirmation de l'adresse email. null = pas encore confirmée.
+    // Le jeton n'est jamais stocké en clair : seulement son empreinte SHA-256.
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    emailVerificationTokenHash: text("email_verification_token_hash"),
+    emailVerificationExpiresAt: timestamp("email_verification_expires_at", { withTimezone: true }),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

@@ -18,7 +18,9 @@ type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 type Client = typeof schema.clients.$inferSelect;
 type Appointment = typeof schema.appointments.$inferSelect;
 
-const RESEND_FROM = "RDV Assistant <onboarding@resend.dev>";
+// Une fois un domaine vérifié sur Resend, définir RESEND_FROM dans Vercel,
+// ex. "RDV Assistant <notifications@mondomaine.com>".
+const RESEND_FROM = process.env.RESEND_FROM?.trim() || "RDV Assistant <onboarding@resend.dev>";
 
 function formatMessage(
   template: string,
@@ -65,7 +67,7 @@ async function callResend(apiKey: string, to: string, subject: string, message: 
   });
 }
 
-async function sendEmail(to: string, subject: string, message: string) {
+export async function sendEmail(to: string, subject: string, message: string) {
   const apiKey = process.env.RESEND_API_KEY?.trim();
 
   if (!apiKey) {
