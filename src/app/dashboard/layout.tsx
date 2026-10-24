@@ -11,9 +11,9 @@ export default async function DashboardLayout({
   if (!entrepreneur) redirect("/login");
 
   return (
-    <div className="flex min-h-full flex-1">
+    <div className="flex min-h-full flex-1 flex-col sm:flex-row">
       <Sidebar businessName={entrepreneur.businessName} slug={entrepreneur.slug} />
-      <main className="flex-1 overflow-y-auto bg-paper p-8">{children}</main>
+      <main className="flex-1 overflow-y-auto bg-paper p-4 sm:p-8">{children}</main>
     </div>
   );
 }

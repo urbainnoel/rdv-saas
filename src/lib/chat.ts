@@ -162,6 +162,22 @@ export async function askAssistant({
     // les objets imbriqués dans le message d'erreur), pour pouvoir diagnostiquer
     // précisément (modèle invalide, clé invalide, etc.) si ça se reproduit.
     console.error(`[Groq] HTTP ${res.status} — modèle "${MODEL}" — réponse brute:`, text);
+
+    // Cas fréquent avec ce modèle : Groq valide strictement le JSON renvoyé
+    // et rejette (400, code "json_validate_failed") quand le modèle répond en
+    // texte libre au lieu du format demandé — alors qu'il avait en fait une
+    // réponse sensée (disponible dans failed_generation). Plutôt que de
+    // planter et d'afficher une erreur générique, on récupère ce texte.
+    try {
+      const errorBody = JSON.parse(text);
+      const fallbackText = errorBody?.error?.failed_generation;
+      if (res.status === 400 && typeof fallbackText === "string" && fallbackText.trim()) {
+        return { answer: fallbackText.trim(), forward: false, lead: null, booking: null };
+      }
+    } catch {
+      // Le corps n'était pas du JSON exploitable — on tombe dans l'erreur générique ci-dessous.
+    }
+
     throw new Error(`Groq API error (${res.status}): ${text.slice(0, 500)}`);
   }
 
