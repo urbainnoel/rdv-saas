@@ -5,15 +5,15 @@ import { CalendarIcon, ClockIcon, AssistantIcon } from "@/components/icons";
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-6">
+      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4 sm:px-6 sm:py-6">
         <BrandMark />
-        <nav className="flex items-center gap-6 text-sm text-ink-soft">
-          <Link href="/login" className="hover:text-ink">
+        <nav className="flex items-center gap-3 text-sm text-ink-soft sm:gap-6">
+          <Link href="/login" className="whitespace-nowrap hover:text-ink">
             Connexion
           </Link>
           <Link
             href="/signup"
-            className="rounded-full bg-forest px-4 py-2 font-medium text-white transition hover:bg-forest-dark"
+            className="whitespace-nowrap rounded-full bg-forest px-3 py-1.5 text-xs font-medium text-white transition hover:bg-forest-dark sm:px-4 sm:py-2 sm:text-sm"
           >
             Créer mon compte
           </Link>
@@ -21,7 +21,7 @@ export default function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6">
-        <section className="flex flex-col gap-6 py-16 sm:py-24">
+        <section className="flex flex-col gap-6 pb-12 pt-8 sm:py-24">
           <p className="text-sm font-medium text-forest">
             Pour coachs, consultants et indépendants
           </p>

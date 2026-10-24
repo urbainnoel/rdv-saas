@@ -4,7 +4,7 @@ export default function BrandMark({ href = "/" }: { href?: string }) {
   return (
     <Link
       href={href}
-      className="font-display text-xl italic text-forest transition hover:text-forest-dark"
+      className="whitespace-nowrap font-display text-lg italic text-forest transition hover:text-forest-dark sm:text-xl"
     >
       RDV Assistant
     </Link>
