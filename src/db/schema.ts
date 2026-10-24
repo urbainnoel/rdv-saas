@@ -1,27 +1,29 @@
 // Schéma de base de données — SaaS de prise de RDV + assistant pour entrepreneurs
-// ORM : Drizzle (SQLite en dev, portable vers PostgreSQL en production)
+// ORM : Drizzle + PostgreSQL (hébergé sur Neon)
 
 import { sql } from "drizzle-orm";
 import {
-  sqliteTable,
+  pgTable,
   text,
   integer,
+  boolean,
+  timestamp,
   uniqueIndex,
   index,
-} from "drizzle-orm/sqlite-core";
+} from "drizzle-orm/pg-core";
 import { createId } from "@paralleldrive/cuid2";
 
 const id = () => text("id").primaryKey().$defaultFn(() => createId());
 const timestamps = {
-  createdAt: text("created_at")
+  createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
-    .default(sql`(current_timestamp)`),
+    .default(sql`now()`),
 };
 
 // ----------------------------------------------------------------------------
 // ENTREPRENEUR — le client payant de notre SaaS
 // ----------------------------------------------------------------------------
-export const entrepreneurs = sqliteTable(
+export const entrepreneurs = pgTable(
   "entrepreneurs",
   {
     id: id(),
@@ -31,9 +33,9 @@ export const entrepreneurs = sqliteTable(
     slug: text("slug").notNull(), // utilisé dans l'URL publique : tonapp.com/{slug}
     timezone: text("timezone").notNull().default("Africa/Conakry"),
     ...timestamps,
-    updatedAt: text("updated_at")
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
-      .default(sql`(current_timestamp)`),
+      .default(sql`now()`),
   },
   (table) => ({
     emailIdx: uniqueIndex("entrepreneurs_email_idx").on(table.email),
@@ -44,7 +46,7 @@ export const entrepreneurs = sqliteTable(
 // ----------------------------------------------------------------------------
 // DISPONIBILITÉS — règles récurrentes ("tous les lundis de 9h à 17h")
 // ----------------------------------------------------------------------------
-export const availabilities = sqliteTable(
+export const availabilities = pgTable(
   "availabilities",
   {
     id: id(),
@@ -65,15 +67,15 @@ export const availabilities = sqliteTable(
 );
 
 // Créneaux bloqués ponctuellement (congés, imprévu...)
-export const blockedSlots = sqliteTable(
+export const blockedSlots = pgTable(
   "blocked_slots",
   {
     id: id(),
     entrepreneurId: text("entrepreneur_id")
       .notNull()
       .references(() => entrepreneurs.id, { onDelete: "cascade" }),
-    startAt: text("start_at").notNull(), // ISO datetime
-    endAt: text("end_at").notNull(),
+    startAt: timestamp("start_at", { withTimezone: true }).notNull(),
+    endAt: timestamp("end_at", { withTimezone: true }).notNull(),
     reason: text("reason"),
   },
   (table) => ({
@@ -86,7 +88,7 @@ export const blockedSlots = sqliteTable(
 // ----------------------------------------------------------------------------
 // CLIENT — la personne qui prend rendez-vous (pas un utilisateur du SaaS)
 // ----------------------------------------------------------------------------
-export const clients = sqliteTable(
+export const clients = pgTable(
   "clients",
   {
     id: id(),
@@ -111,7 +113,7 @@ export const clients = sqliteTable(
 // RENDEZ-VOUS
 // ----------------------------------------------------------------------------
 // status: PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW (voir src/lib/enums.ts)
-export const appointments = sqliteTable(
+export const appointments = pgTable(
   "appointments",
   {
     id: id(),
@@ -121,17 +123,17 @@ export const appointments = sqliteTable(
     clientId: text("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    startAt: text("start_at").notNull(),
-    endAt: text("end_at").notNull(),
+    startAt: timestamp("start_at", { withTimezone: true }).notNull(),
+    endAt: timestamp("end_at", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("PENDING"),
     notes: text("notes"),
     googleCalendarEventId: text("google_calendar_event_id"),
-    reminderSentAt: text("reminder_sent_at"),
-    confirmedByClientAt: text("confirmed_by_client_at"),
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    confirmedByClientAt: timestamp("confirmed_by_client_at", { withTimezone: true }),
     ...timestamps,
-    updatedAt: text("updated_at")
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
-      .default(sql`(current_timestamp)`),
+      .default(sql`now()`),
   },
   (table) => ({
     entrepreneurStartIdx: index("appointments_entrepreneur_start_idx").on(
@@ -147,7 +149,7 @@ export const appointments = sqliteTable(
 // ----------------------------------------------------------------------------
 // type: CONFIRMATION | REMINDER_24H | REMINDER_1H | THANK_YOU
 //       | NO_SHOW_FOLLOWUP | INACTIVE_CLIENT | REVIEW_REQUEST (voir src/lib/enums.ts)
-export const messageTemplates = sqliteTable(
+export const messageTemplates = pgTable(
   "message_templates",
   {
     id: id(),
@@ -156,7 +158,7 @@ export const messageTemplates = sqliteTable(
       .references(() => entrepreneurs.id, { onDelete: "cascade" }),
     type: text("type").notNull(),
     content: text("content").notNull(), // supporte {prenom_client}, {date}, {heure}, {nom_entrepreneur}
-    enabled: integer("enabled", { mode: "boolean" }).notNull().default(true),
+    enabled: boolean("enabled").notNull().default(true),
   },
   (table) => ({
     entrepreneurTypeIdx: uniqueIndex("message_templates_entrepreneur_type_idx").on(
@@ -169,7 +171,7 @@ export const messageTemplates = sqliteTable(
 // ----------------------------------------------------------------------------
 // BASE DE CONNAISSANCE DU CHATBOT — FAQ / infos fournies par l'entrepreneur
 // ----------------------------------------------------------------------------
-export const knowledgeBaseEntries = sqliteTable(
+export const knowledgeBaseEntries = pgTable(
   "knowledge_base_entries",
   {
     id: id(),
@@ -179,9 +181,9 @@ export const knowledgeBaseEntries = sqliteTable(
     question: text("question").notNull(), // ex: "Quels sont vos tarifs ?"
     answer: text("answer").notNull(),
     ...timestamps,
-    updatedAt: text("updated_at")
+    updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
-      .default(sql`(current_timestamp)`),
+      .default(sql`now()`),
   },
   (table) => ({
     entrepreneurIdx: index("knowledge_base_entrepreneur_idx").on(

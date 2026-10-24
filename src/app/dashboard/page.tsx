@@ -6,7 +6,7 @@ export default async function DashboardPage() {
   const entrepreneur = await getCurrentEntrepreneur();
   if (!entrepreneur) return null;
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
   const upcoming = await db
     .select({

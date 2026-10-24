@@ -118,8 +118,8 @@ export async function POST(req: NextRequest) {
     .values({
       entrepreneurId: entrepreneur.id,
       clientId: clientRecord.id,
-      startAt: start.toISOString(),
-      endAt: end.toISOString(),
+      startAt: start,
+      endAt: end,
       status: "CONFIRMED",
       notes: notes ?? null,
     })
