@@ -1,53 +1,71 @@
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
-import { CalendarIcon, ClockIcon, AssistantIcon } from "@/components/icons";
+import { CalendarIcon, ClockIcon, AssistantIcon, MenuIcon } from "@/components/icons";
 
 export default function Home() {
   return (
     <div className="flex flex-1 flex-col">
       <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4 sm:px-6 sm:py-6">
         <BrandMark />
-        <nav className="flex items-center gap-3 text-sm text-ink-soft sm:gap-6">
-          <Link href="/login" className="whitespace-nowrap hover:text-ink">
+
+        {/* Écrans larges : liens visibles directement. */}
+        <nav className="hidden items-center gap-6 text-sm text-ink-soft sm:flex">
+          <Link href="/login" className="hover:text-ink">
             Connexion
           </Link>
           <Link
             href="/signup"
-            className="whitespace-nowrap rounded-full bg-forest px-3 py-1.5 text-xs font-medium text-white transition hover:bg-forest-dark sm:px-4 sm:py-2 sm:text-sm"
+            className="rounded-full bg-forest px-4 py-2 font-medium text-white transition hover:bg-forest-dark"
           >
             Créer mon compte
           </Link>
         </nav>
+
+        {/* Mobile : menu replié pour laisser l'espace au titre. */}
+        <details className="relative sm:hidden">
+          <summary className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full text-ink-soft transition hover:bg-forest-soft hover:text-forest">
+            <MenuIcon className="h-6 w-6" />
+          </summary>
+          <div className="absolute right-0 top-12 z-20 flex w-48 flex-col gap-1 rounded-2xl border border-border bg-surface p-2 shadow-sm">
+            <Link href="/login" className="rounded-xl px-3 py-2 text-sm text-ink-soft transition hover:bg-forest-soft hover:text-forest">
+              Connexion
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-xl bg-forest px-3 py-2 text-center text-sm font-medium text-white transition hover:bg-forest-dark"
+            >
+              Créer mon compte
+            </Link>
+          </div>
+        </details>
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 sm:px-6">
-        <section className="animate-rise overflow-hidden rounded-[32px] bg-gradient-to-br from-forest to-forest-dark px-6 py-10 text-white shadow-sm sm:rounded-[40px] sm:px-14 sm:py-16">
-          <div className="flex flex-col gap-6 sm:max-w-xl">
-            <p className="text-sm font-medium text-amber-soft">
-              Pour coachs, consultants et indépendants
-            </p>
-            <h1 className="font-display text-4xl italic leading-tight sm:text-6xl">
-              Tes rendez-vous pris, confirmés et rappelés — sans que tu aies à y penser.
-            </h1>
-            <p className="text-lg leading-relaxed text-white/80">
-              Tes clients réservent un créneau libre directement en ligne. Les
-              deux côtés reçoivent un rappel avant l&apos;heure. Et un assistant
-              répond à leurs questions courantes à ta place.
-            </p>
-            <div className="flex flex-wrap items-center gap-4 pt-2">
-              <Link
-                href="/signup"
-                className="inline-block rounded-full bg-amber px-6 py-3 font-medium text-ink transition hover:bg-amber-dark hover:text-white"
-              >
-                Créer mon compte gratuitement
-              </Link>
-              <Link
-                href="#assistant"
-                className="inline-block rounded-full border border-white/30 px-6 py-3 font-medium text-white transition hover:border-white/60"
-              >
-                Discuter avec l&apos;assistant
-              </Link>
-            </div>
+        <section className="flex flex-col gap-6 pb-10 pt-6 sm:py-20">
+          <span className="inline-flex w-fit items-center rounded-full bg-forest-soft px-4 py-1.5 text-sm font-medium text-forest">
+            Pour coachs, consultants et indépendants
+          </span>
+          <h1 className="max-w-2xl font-display text-4xl italic leading-tight text-ink sm:text-6xl">
+            Tes rendez-vous pris, confirmés et rappelés — sans que tu aies à y penser.
+          </h1>
+          <p className="max-w-xl text-lg leading-relaxed text-ink-soft">
+            Tes clients réservent un créneau libre directement en ligne. Les
+            deux côtés reçoivent un rappel avant l&apos;heure. Et un assistant
+            répond à leurs questions courantes à ta place.
+          </p>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
+              href="/signup"
+              className="inline-block rounded-full bg-amber px-6 py-3 font-medium text-ink transition hover:bg-amber-dark hover:text-white"
+            >
+              Créer mon compte gratuitement
+            </Link>
+            <Link
+              href="#assistant"
+              className="inline-block rounded-full bg-forest-soft px-6 py-3 font-medium text-forest transition hover:bg-forest hover:text-white"
+            >
+              Discuter avec l&apos;assistant
+            </Link>
           </div>
         </section>
 

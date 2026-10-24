@@ -52,6 +52,15 @@ body {
   outline-offset: 2px;
 }
 
+/* Menu mobile (header) : un <details>/<summary> natif sans le triangle par
+   défaut du navigateur, pour qu'il ne reste que notre icône hamburger. */
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+
 /* Une seule entrée orchestrée au chargement (choix d'entrée de la page
    publique), plutôt que des animations éparpillées sur chaque élément. */
 @keyframes rise {
