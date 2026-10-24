@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { and, eq } from "drizzle-orm";
 import { askAssistant, type ChatMessage } from "@/lib/chat";
-import { notifyUnansweredQuestion } from "@/lib/notifications";
+import { notifyUnansweredQuestion, notifyNewLead } from "@/lib/notifications";
 
 type ChatBody = {
   slug: string;
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
   ]);
 
   try {
-    const { answer, forward } = await askAssistant({
+    const { answer, forward, lead } = await askAssistant({
       businessName: entrepreneur.businessName,
       slug: entrepreneur.slug,
       entries,
@@ -52,6 +52,14 @@ export async function POST(req: NextRequest) {
         entrepreneur,
         question: lastUserMessage?.content ?? "(question non identifiée)",
       }).catch((err) => console.error("Erreur notification question non répondue:", err));
+    }
+
+    if (lead) {
+      notifyNewLead({
+        entrepreneur,
+        leadName: lead.name,
+        leadContact: lead.contact,
+      }).catch((err) => console.error("Erreur notification nouveau prospect:", err));
     }
 
     return NextResponse.json({ answer, forward });

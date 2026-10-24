@@ -94,3 +94,22 @@ export async function notifyUnansweredQuestion({
     `Un client a posé une question à ton assistant sans réponse disponible :\n« ${question} »\n\nPense à y répondre toi-même, et à l'ajouter à ta FAQ si elle revient souvent.`
   );
 }
+
+// Quand l'assistant détecte un prospect intéressé qui n'a pas encore
+// réservé mais a donné son contact, on prévient l'entrepreneur pour qu'il
+// puisse relancer lui-même.
+export async function notifyNewLead({
+  entrepreneur,
+  leadName,
+  leadContact,
+}: {
+  entrepreneur: Entrepreneur;
+  leadName: string;
+  leadContact: string;
+}) {
+  await dispatch(
+    "email",
+    entrepreneur.email,
+    `Nouveau prospect intéressé via ton assistant : ${leadName} (${leadContact}).\n\nIl/elle n'a pas encore réservé — pense à le/la recontacter.`
+  );
+}
