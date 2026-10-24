@@ -1,6 +1,6 @@
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
-import { CalendarIcon, ClockIcon, AssistantIcon, MenuIcon, CodeIcon } from "@/components/icons";
+import { CalendarIcon, ClockIcon, AssistantIcon, MenuIcon } from "@/components/icons";
 
 export default function Home() {
   return (
@@ -41,29 +41,27 @@ export default function Home() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 sm:px-6">
-        <section className="flex flex-col gap-6 pb-10 pt-6 sm:py-20">
-          <span className="inline-flex w-fit items-center rounded-full bg-forest-soft px-4 py-1.5 text-sm font-medium text-forest">
+        <section className="flex flex-col gap-5 pb-10 pt-6 sm:py-24">
+          <p className="text-sm font-medium text-ink-faint">
             Pour coachs, consultants et indépendants
-          </span>
-          <h1 className="max-w-2xl font-display text-4xl italic leading-tight text-ink sm:text-6xl">
-            Tes rendez-vous pris, confirmés et rappelés — sans que tu aies à y penser.
+          </p>
+          <h1 className="max-w-2xl font-display text-4xl leading-tight text-ink sm:text-6xl">
+            Vos rendez-vous pris, confirmés et rappelés —{" "}
+            <span className="italic text-forest">sans que vous ayez à y penser.</span>
           </h1>
-
-          <div className="grid grid-cols-1 gap-4 pt-2 sm:grid-cols-2">
-            <ServiceCard
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <Link
               href="/signup"
-              tone="forest"
-              icon={<CodeIcon className="h-7 w-7" />}
-              title="Intégrer le chatbot à votre site web"
-              description="Un assistant qui répond à vos clients et prend leurs rendez-vous, directement sur votre site."
-            />
-            <ServiceCard
+              className="inline-block rounded-full bg-forest px-6 py-3 font-medium text-white transition hover:bg-forest-dark"
+            >
+              Intégrer le chatbot à mon site
+            </Link>
+            <Link
               href="/signup"
-              tone="amber"
-              icon={<CalendarIcon className="h-7 w-7" />}
-              title="Créer votre espace de rendez-vous"
-              description="Vos clients réservent un créneau libre en ligne, sans échange de messages."
-            />
+              className="inline-block rounded-full border-2 border-forest px-6 py-3 font-medium text-forest transition hover:bg-forest-soft"
+            >
+              Créer mon espace de rendez-vous
+            </Link>
           </div>
         </section>
 
@@ -111,38 +109,6 @@ const TONE_STYLES = {
   amber: { bg: "bg-amber-soft", icon: "text-amber-dark" },
   clay: { bg: "bg-clay-soft", icon: "text-clay" },
 } as const;
-
-type Tone = keyof typeof TONE_STYLES;
-
-function ServiceCard({
-  href,
-  icon,
-  title,
-  description,
-  tone,
-}: {
-  href: string;
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  tone: Tone;
-}) {
-  const styles = TONE_STYLES[tone];
-  return (
-    <Link
-      href={href}
-      className={`group flex flex-col gap-4 rounded-3xl p-6 transition hover:-translate-y-0.5 ${styles.bg}`}
-    >
-      <div className={`flex h-12 w-12 items-center justify-center rounded-full bg-white/70 ${styles.icon}`}>
-        {icon}
-      </div>
-      <div className="flex flex-col gap-1.5">
-        <h2 className="font-display text-xl italic text-ink">{title}</h2>
-        <p className="text-sm leading-relaxed text-ink-soft">{description}</p>
-      </div>
-    </Link>
-  );
-}
 
 function Feature({
   icon,
