@@ -192,6 +192,6 @@ export async function notifyNewLead({
     "email",
     notificationEmailFor(entrepreneur),
     "Nouveau prospect via ton assistant",
-    `Nouveau prospect intéressé via ton assistant : ${leadName} (${leadContact}).\n\nIl/elle n'a pas encore réservé — pense à le/la recontacter.`
+    `Nouveau prospect intéressé via ton assistant : ${leadName} (${leadContact}).\n\nIl/elle n'a pas encore réservé — pense à le/la recontacter. Tu retrouves tous tes prospects dans ton tableau de bord, rubrique « Prospects ».`
   );
 }

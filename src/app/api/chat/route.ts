@@ -6,6 +6,7 @@ import { notifyUnansweredQuestion, notifyNewLead } from "@/lib/notifications";
 import { getAvailableSlotsForRange, type Slot } from "@/lib/slots";
 import { createAppointment } from "@/lib/booking";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { saveLead } from "@/lib/leads";
 
 type ChatBody = {
   slug: string;
@@ -159,11 +160,30 @@ export async function POST(req: NextRequest) {
     }
 
     if (lead) {
-      notifyNewLead({
-        entrepreneur,
-        leadName: lead.name,
-        leadContact: lead.contact,
-      }).catch((err) => console.error("Erreur notification nouveau prospect:", err));
+      // Les derniers messages du prospect servent de contexte pour la relance.
+      const context = body.messages
+        .filter((m) => m.role === "user")
+        .slice(-3)
+        .map((m) => m.content)
+        .join(" / ");
+      try {
+        const isNew = await saveLead({
+          entrepreneurId: entrepreneur.id,
+          name: lead.name,
+          contact: lead.contact,
+          context,
+        });
+        // Une seule notification par prospect, pas une à chaque message.
+        if (isNew) {
+          notifyNewLead({
+            entrepreneur,
+            leadName: lead.name,
+            leadContact: lead.contact,
+          }).catch((err) => console.error("Erreur notification nouveau prospect:", err));
+        }
+      } catch (err) {
+        console.error("Erreur enregistrement prospect:", err);
+      }
     }
 
     return NextResponse.json({ answer: finalAnswer, forward: forward && !booking });

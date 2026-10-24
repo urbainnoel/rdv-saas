@@ -57,6 +57,13 @@
       "when": 1792885121504,
       "tag": "0007_bouncy_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792885825813,
+      "tag": "0008_low_captain_midlands",
+      "breakpoints": true
     }
   ]
 }

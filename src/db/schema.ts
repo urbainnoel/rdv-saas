@@ -255,3 +255,34 @@ export const rateLimits = pgTable("rate_limits", {
     .notNull()
     .default(sql`now()`),
 });
+
+// ----------------------------------------------------------------------------
+// PROSPECTS — contacts captés par l'assistant, pas encore clients
+// ----------------------------------------------------------------------------
+// status: NEW (à recontacter) | CONTACTED | CONVERTED (a réservé) | LOST
+// `contact` est normalisé (email en minuscules, téléphone sans espaces) pour
+// qu'un même prospect ne soit enregistré qu'une fois par entreprise.
+export const leads = pgTable(
+  "leads",
+  {
+    id: id(),
+    entrepreneurId: text("entrepreneur_id")
+      .notNull()
+      .references(() => entrepreneurs.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    contact: text("contact").notNull(),
+    // Ce que le prospect a écrit à l'assistant, pour savoir quoi lui proposer.
+    context: text("context"),
+    status: text("status").notNull().default("NEW"),
+    ...timestamps,
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    entrepreneurContactIdx: uniqueIndex("leads_entrepreneur_contact_idx").on(
+      table.entrepreneurId,
+      table.contact
+    ),
+  })
+);

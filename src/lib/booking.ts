@@ -6,6 +6,7 @@ import { db, schema } from "@/db";
 import { and, eq, ne } from "drizzle-orm";
 import { sendAppointmentConfirmation } from "@/lib/notifications";
 import { getAvailableSlotsForDay } from "@/lib/slots";
+import { markLeadConverted } from "@/lib/leads";
 
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 
@@ -136,6 +137,10 @@ export async function createAppointment({
       notes: notes ?? null,
     })
     .returning();
+
+  await markLeadConverted(entrepreneur.id, [client.email, client.phone]).catch((err) =>
+    console.error("Erreur mise à jour prospect converti:", err)
+  );
 
   sendAppointmentConfirmation({ entrepreneur, client: clientRecord, appointment }).catch((err) =>
     console.error("Erreur envoi confirmation:", err)
