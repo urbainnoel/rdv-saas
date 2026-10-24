@@ -45,15 +45,12 @@ function notificationEmailFor(entrepreneur: Entrepreneur): string {
   return entrepreneur.notificationEmail || entrepreneur.email;
 }
 
-async function sendEmail(to: string, subject: string, message: string) {
-  const apiKey = process.env.RESEND_API_KEY?.trim();
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
-  if (!apiKey) {
-    console.log(`[NOTIFICATION:EMAIL] (Resend non configuré) -> ${to}\n${subject}\n${message}\n`);
-    return;
-  }
-
-  const res = await fetch("https://api.resend.com/emails", {
+async function callResend(apiKey: string, to: string, subject: string, message: string) {
+  return fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -66,14 +63,34 @@ async function sendEmail(to: string, subject: string, message: string) {
       text: message,
     }),
   });
+}
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    // Cas attendu sans domaine vérifié : Resend refuse d'envoyer à une
-    // adresse qui n'est pas celle du compte. On logue sans faire planter
-    // le reste du flux (la réservation/le RDV doit réussir quoi qu'il arrive).
-    console.error(`[Resend] Échec envoi à ${to} (HTTP ${res.status}): ${text.slice(0, 300)}`);
+async function sendEmail(to: string, subject: string, message: string) {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+
+  if (!apiKey) {
+    console.log(`[NOTIFICATION:EMAIL] (Resend non configuré) -> ${to}\n${subject}\n${message}\n`);
     return;
+  }
+
+  // Jusqu'à 2 tentatives : les fonctions serverless ont parfois une coupure
+  // réseau ponctuelle (TLS/connexion) lors du premier appel sortant — on ne
+  // veut pas perdre une vraie notification pour un blip passager.
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const res = await callResend(apiKey, to, subject, message);
+      if (res.ok) return;
+
+      const text = await res.text().catch(() => "");
+      // Cas attendu sans domaine vérifié : Resend refuse d'envoyer à une
+      // adresse qui n'est pas celle du compte. Pas la peine de réessayer,
+      // le résultat sera le même — on logue et on arrête là.
+      console.error(`[Resend] Échec envoi à ${to} (HTTP ${res.status}): ${text.slice(0, 300)}`);
+      return;
+    } catch (err) {
+      console.error(`[Resend] Erreur réseau (tentative ${attempt}/2) vers ${to}:`, err);
+      if (attempt === 1) await sleep(400);
+    }
   }
 }
 
