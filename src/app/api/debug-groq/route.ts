@@ -18,10 +18,19 @@ export async function GET() {
 
   const body = await res.text();
 
+  let modelIds: string[] = [];
+  try {
+    const parsed = JSON.parse(body);
+    modelIds = (parsed.data ?? []).map((m: { id: string }) => m.id);
+  } catch {
+    // ignore, on renverra le corps brut en secours
+  }
+
   return NextResponse.json({
     ok: res.ok,
     status: res.status,
     cleEnvironnement: masked,
-    reponseGroq: body.slice(0, 2000),
+    modelesDisponibles: modelIds.length > 0 ? modelIds : undefined,
+    reponseGroq: modelIds.length > 0 ? undefined : body.slice(0, 2000),
   });
 }
