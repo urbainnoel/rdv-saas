@@ -31,7 +31,7 @@
   var origin = new URL(currentScript.src).origin;
   var open = false;
 
-  var FOREST = "#1f4d3d";
+  var FOREST = "#1f4d3d"; // couleur par défaut, remplacée dès que la couleur de marque est connue
 
   var bubble = document.createElement("button");
   bubble.setAttribute("aria-label", "Ouvrir l'assistant");
@@ -79,4 +79,20 @@
 
   document.body.appendChild(panelWrap);
   document.body.appendChild(bubble);
+
+  // On va chercher la couleur de marque de l'entrepreneur pour que la bulle
+  // (rendue directement sur SON site, donc hors de notre CSS) corresponde à
+  // sa charte graphique plutôt que de rester systématiquement verte.
+  fetch(origin + "/api/public/branding?slug=" + encodeURIComponent(slug))
+    .then(function (res) {
+      return res.ok ? res.json() : null;
+    })
+    .then(function (data) {
+      if (data && data.brandColor) {
+        bubble.style.background = data.brandColor;
+      }
+    })
+    .catch(function () {
+      // Pas grave : la bulle garde la couleur par défaut.
+    });
 })();
