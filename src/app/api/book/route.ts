@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { eq } from "drizzle-orm";
 import { createAppointment } from "@/lib/booking";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 type BookBody = {
   slug: string;
@@ -17,6 +18,13 @@ type BookBody = {
 };
 
 export async function POST(req: NextRequest) {
+  if (!(await rateLimit(`book:ip:${clientIp(req)}`, 10, 60 * 60))) {
+    return NextResponse.json(
+      { error: "Trop de réservations depuis cette connexion. Réessayez plus tard." },
+      { status: 429 }
+    );
+  }
+
   let body: BookBody;
   try {
     body = await req.json();

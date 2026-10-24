@@ -5,6 +5,7 @@ import { askAssistant, type ChatMessage, type SlotOption } from "@/lib/chat";
 import { notifyUnansweredQuestion, notifyNewLead } from "@/lib/notifications";
 import { getAvailableSlotsForRange, type Slot } from "@/lib/slots";
 import { createAppointment } from "@/lib/booking";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 type ChatBody = {
   slug: string;
@@ -26,6 +27,21 @@ export async function POST(req: NextRequest) {
 
   if (!entrepreneur) {
     return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
+  }
+
+  // Anti-abus : un visiteur ne peut pas inonder l'assistant, et chaque
+  // entreprise a un plafond quotidien — sinon un seul abuseur pourrait
+  // épuiser le quota d'IA partagé et casser l'assistant de tout le monde.
+  const ip = clientIp(req);
+  const [visitorOk, tenantOk] = await Promise.all([
+    rateLimit(`chat:ip:${ip}`, 40, 10 * 60),
+    rateLimit(`chat:slug:${entrepreneur.slug}`, 400, 24 * 60 * 60),
+  ]);
+  if (!visitorOk || !tenantOk) {
+    return NextResponse.json({
+      answer: `Je reçois beaucoup de messages en ce moment. Vous pouvez réserver directement via le formulaire, ou réessayer dans quelques minutes.`,
+      forward: false,
+    });
   }
 
   const today = new Date();

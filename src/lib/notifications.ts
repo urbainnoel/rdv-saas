@@ -132,14 +132,17 @@ export async function sendReminder({
   client,
   appointment,
   type,
+  template,
 }: {
   entrepreneur: Entrepreneur;
   client: Client;
   appointment: Appointment;
   type: Extract<MessageTemplateType, "REMINDER_24H" | "REMINDER_1H">;
+  /** Texte personnalisé par l'entrepreneur ; à défaut, le modèle par défaut. */
+  template?: string;
 }) {
   const vars = buildVars(entrepreneur, client, appointment);
-  const message = formatMessage(DEFAULT_MESSAGE_TEMPLATES[type], vars);
+  const message = formatMessage(template ?? DEFAULT_MESSAGE_TEMPLATES[type], vars);
 
   await dispatch("email", client.email, `Rappel de votre rendez-vous — ${entrepreneur.businessName}`, message);
   await dispatch("whatsapp", client.phone, "", message);

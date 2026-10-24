@@ -4,6 +4,7 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/session";
 import { DEFAULT_MESSAGE_TEMPLATES } from "@/lib/enums";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
 
 function slugify(input: string): string {
   return input
@@ -15,6 +16,13 @@ function slugify(input: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  if (!(await rateLimit(`signup:ip:${clientIp(req)}`, 5, 60 * 60))) {
+    return NextResponse.json(
+      { error: "Trop de créations de compte depuis cette connexion. Réessayez dans une heure." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const { email, password, businessName } = body ?? {};
 

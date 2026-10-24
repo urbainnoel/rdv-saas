@@ -167,6 +167,10 @@ export const appointments = pgTable(
     notes: text("notes"),
     googleCalendarEventId: text("google_calendar_event_id"),
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
+    // Marqueurs posés par la tâche planifiée des rappels : chaque rappel
+    // n'est envoyé qu'une fois, même si la tâche tourne plusieurs fois.
+    reminder24hSentAt: timestamp("reminder_24h_sent_at", { withTimezone: true }),
+    reminder1hSentAt: timestamp("reminder_1h_sent_at", { withTimezone: true }),
     confirmedByClientAt: timestamp("confirmed_by_client_at", { withTimezone: true }),
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true })
@@ -233,3 +237,16 @@ export const knowledgeBaseEntries = pgTable(
     ),
   })
 );
+
+// ----------------------------------------------------------------------------
+// LIMITES D'UTILISATION — compteurs par fenêtre de temps (anti-abus)
+// ----------------------------------------------------------------------------
+// key : ex. "chat:ip:1.2.3.4" ou "login:email:x@y.com". Nettoyée
+// régulièrement par la tâche planifiée des rappels.
+export const rateLimits = pgTable("rate_limits", {
+  key: text("key").primaryKey(),
+  count: integer("count").notNull().default(0),
+  windowStart: timestamp("window_start", { withTimezone: true })
+    .notNull()
+    .default(sql`now()`),
+});

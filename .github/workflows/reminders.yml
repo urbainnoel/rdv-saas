@@ -1,0 +1,22 @@
+# Déclenche l'envoi des rappels de rendez-vous toutes les 15 minutes.
+# Le secret CRON_SECRET doit être identique dans GitHub (Settings > Secrets
+# and variables > Actions) et dans Vercel (Environment Variables).
+name: Rappels de rendez-vous
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  send-reminders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Appeler la tâche des rappels
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error --max-time 60 \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            https://rdv-saas-three.vercel.app/api/cron/reminders

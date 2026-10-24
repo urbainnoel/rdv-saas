@@ -71,18 +71,18 @@ export default function Home() {
             className="sm:col-span-2"
             icon={<CalendarIcon className="h-6 w-6" />}
             title="Réservation en ligne"
-            description="Tes clients voient tes créneaux libres et choisissent eux-mêmes leur rendez-vous, à toute heure."
+            description="Vos clients voient vos créneaux libres et choisissent eux-mêmes leur rendez-vous, à toute heure."
           />
           <Feature
             tone="amber"
             icon={<ClockIcon className="h-6 w-6" />}
             title="Rappels aux deux parties"
-            description="Confirmation et rappel envoyés par email et WhatsApp, pour réduire les absences."
+            description="Une confirmation, puis un rappel la veille et une heure avant, pour réduire les absences."
           />
           <Feature
             tone="clay"
             icon={<AssistantIcon className="h-6 w-6" />}
-            title="Assistant qui répond à ta place"
+            title="Un assistant qui répond à votre place"
             description="Tarifs, horaires, annulation : un assistant répond aux questions courantes et transmet le reste."
           />
           <Feature
@@ -90,14 +90,14 @@ export default function Home() {
             className="sm:col-span-2"
             icon={<AssistantIcon className="h-6 w-6" />}
             title="Il peut même prendre le rendez-vous"
-            description="Pas besoin d'aller-retour : l'assistant propose un créneau libre et réserve directement pour ton client, dans la conversation."
+            description="Pas besoin d'aller-retour : l'assistant propose un créneau libre et réserve directement pour votre client, dans la conversation."
           />
         </section>
       </main>
 
       <footer className="border-t border-border py-8">
         <p className="mx-auto w-full max-w-5xl px-6 text-sm text-ink-faint">
-          RDV Assistant — conçu pour les indépendants qui n&apos;ont pas le temps de gérer ça à la main.
+          RDV Assistant — conçu pour les indépendants qui n&apos;ont pas le temps de gérer leurs rendez-vous à la main.
         </p>
       </footer>
     </div>

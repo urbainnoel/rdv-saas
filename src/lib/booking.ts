@@ -5,6 +5,7 @@
 import { db, schema } from "@/db";
 import { and, eq, ne } from "drizzle-orm";
 import { sendAppointmentConfirmation } from "@/lib/notifications";
+import { getAvailableSlotsForDay } from "@/lib/slots";
 
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 
@@ -73,6 +74,24 @@ export async function createAppointment({
       ok: false,
       status: 409,
       error: "Ce créneau vient d'être réservé par quelqu'un d'autre. Merci d'en choisir un autre.",
+    };
+  }
+
+  // Le créneau doit correspondre exactement à un créneau proposé par les
+  // disponibilités de l'entrepreneur (jour, horaire, durée, hors créneaux
+  // bloqués). Sans ce contrôle, un appel direct à l'API pouvait réserver
+  // n'importe quand, par exemple à 3 h du matin un dimanche.
+  const day = new Date(startAt);
+  day.setHours(0, 0, 0, 0);
+  const freeSlots = await getAvailableSlotsForDay(entrepreneur.id, day);
+  const matchesFreeSlot = freeSlots.some(
+    (s) => s.startAt.getTime() === startAt.getTime() && s.endAt.getTime() === endAt.getTime()
+  );
+  if (!matchesFreeSlot) {
+    return {
+      ok: false,
+      status: 400,
+      error: "Ce créneau ne fait pas partie des disponibilités. Merci d'en choisir un dans la liste.",
     };
   }
 
