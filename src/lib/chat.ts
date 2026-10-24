@@ -151,7 +151,11 @@ export async function askAssistant({
       model: MODEL,
       messages,
       temperature: 0.7,
-      max_tokens: 350,
+      max_tokens: 600,
+      // gpt-oss est un modèle "raisonneur" : sans ce réglage, il peut passer
+      // une bonne partie de son quota de tokens à réfléchir en interne avant
+      // de répondre, et se faire couper avant d'avoir fini le JSON demandé.
+      reasoning_effort: "low",
       response_format: { type: "json_object" },
     }),
   });
@@ -163,16 +167,30 @@ export async function askAssistant({
     // précisément (modèle invalide, clé invalide, etc.) si ça se reproduit.
     console.error(`[Groq] HTTP ${res.status} — modèle "${MODEL}" — réponse brute:`, text);
 
-    // Cas fréquent avec ce modèle : Groq valide strictement le JSON renvoyé
-    // et rejette (400, code "json_validate_failed") quand le modèle répond en
-    // texte libre au lieu du format demandé — alors qu'il avait en fait une
-    // réponse sensée (disponible dans failed_generation). Plutôt que de
-    // planter et d'afficher une erreur générique, on récupère ce texte.
+    // Cas fréquent avec ce modèle : Groq valide strictement le JSON renvoyé et
+    // rejette (400, code "json_validate_failed") soit parce que le modèle a
+    // répondu en texte libre, soit parce qu'il a été coupé avant d'avoir fini
+    // le JSON (quota de tokens atteint) — dans les deux cas, il avait en fait
+    // une réponse sensée (disponible dans failed_generation). Plutôt que de
+    // planter et d'afficher une erreur générique, on récupère ce qu'on peut.
     try {
       const errorBody = JSON.parse(text);
-      const fallbackText = errorBody?.error?.failed_generation;
+      const fallbackText: string | undefined = errorBody?.error?.failed_generation;
       if (res.status === 400 && typeof fallbackText === "string" && fallbackText.trim()) {
-        return { answer: fallbackText.trim(), forward: false, lead: null, booking: null };
+        const trimmed = fallbackText.trim();
+        if (trimmed.startsWith("{")) {
+          // JSON tronqué : on essaie d'extraire juste le champ "answer" déjà écrit.
+          const match = /"answer"\s*:\s*"((?:[^"\\]|\\.)*)/.exec(trimmed);
+          const extracted = match?.[1]?.replace(/\\"/g, '"').replace(/\\n/g, " ").trim();
+          return {
+            answer: extracted || "Pouvez-vous reformuler votre message ?",
+            forward: false,
+            lead: null,
+            booking: null,
+          };
+        }
+        // Réponse en texte libre (pas du JSON) : on l'affiche telle quelle.
+        return { answer: trimmed, forward: false, lead: null, booking: null };
       }
     } catch {
       // Le corps n'était pas du JSON exploitable — on tombe dans l'erreur générique ci-dessous.
