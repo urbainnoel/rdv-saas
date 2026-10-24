@@ -45,20 +45,20 @@ export default function Home() {
           <p className="text-sm font-medium text-ink-faint">
             Pour coachs, consultants et indépendants
           </p>
-          <h1 className="max-w-2xl font-display text-4xl leading-tight text-ink sm:text-6xl">
+          <h1 className="max-w-xl font-display text-2xl leading-snug text-ink sm:text-4xl">
             Vos rendez-vous pris, confirmés et rappelés —{" "}
             <span className="italic text-forest">sans que vous ayez à y penser.</span>
           </h1>
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
               href="/signup"
-              className="inline-block rounded-full bg-forest px-6 py-3 font-medium text-white transition hover:bg-forest-dark"
+              className="inline-block rounded-full bg-forest px-5 py-2.5 text-sm font-medium text-white transition hover:bg-forest-dark"
             >
               Intégrer le chatbot à mon site
             </Link>
             <Link
               href="/signup"
-              className="inline-block rounded-full border-2 border-forest px-6 py-3 font-medium text-forest transition hover:bg-forest-soft"
+              className="inline-block rounded-full border-2 border-forest px-5 py-2.5 text-sm font-medium text-forest transition hover:bg-forest-soft"
             >
               Créer mon espace de rendez-vous
             </Link>
