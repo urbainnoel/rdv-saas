@@ -28,6 +28,11 @@
   --color-danger: #b3261e;
   --color-danger-soft: #fbe9e8;
 
+  /* Troisième teinte, utilisée uniquement pour varier les tuiles de la page
+     d'accueil (à côté du vert et de l'ambre déjà utilisés partout ailleurs). */
+  --color-clay: #a65c38;
+  --color-clay-soft: #f3e2d6;
+
   --font-display: var(--font-newsreader);
   --font-sans: var(--font-inter);
 }

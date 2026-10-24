@@ -20,44 +20,63 @@ export default function Home() {
         </nav>
       </header>
 
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-6">
-        <section className="flex flex-col gap-6 pb-12 pt-8 sm:py-24">
-          <p className="text-sm font-medium text-forest">
-            Pour coachs, consultants et indépendants
-          </p>
-          <h1 className="max-w-2xl font-display text-4xl italic leading-tight text-ink sm:text-5xl">
-            Tes rendez-vous pris, confirmés et rappelés — sans que tu aies à y penser.
-          </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-ink-soft">
-            Tes clients réservent un créneau libre directement en ligne. Les
-            deux côtés reçoivent un rappel avant l&apos;heure. Et un assistant
-            répond à leurs questions courantes à ta place.
-          </p>
-          <div>
-            <Link
-              href="/signup"
-              className="inline-block rounded-full bg-amber px-6 py-3 font-medium text-ink transition hover:bg-amber-dark hover:text-white"
-            >
-              Créer mon compte gratuitement
-            </Link>
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 sm:px-6">
+        <section className="animate-rise overflow-hidden rounded-[32px] bg-gradient-to-br from-forest to-forest-dark px-6 py-10 text-white shadow-sm sm:rounded-[40px] sm:px-14 sm:py-16">
+          <div className="flex flex-col gap-6 sm:max-w-xl">
+            <p className="text-sm font-medium text-amber-soft">
+              Pour coachs, consultants et indépendants
+            </p>
+            <h1 className="font-display text-4xl italic leading-tight sm:text-6xl">
+              Tes rendez-vous pris, confirmés et rappelés — sans que tu aies à y penser.
+            </h1>
+            <p className="text-lg leading-relaxed text-white/80">
+              Tes clients réservent un créneau libre directement en ligne. Les
+              deux côtés reçoivent un rappel avant l&apos;heure. Et un assistant
+              répond à leurs questions courantes à ta place.
+            </p>
+            <div className="flex flex-wrap items-center gap-4 pt-2">
+              <Link
+                href="/signup"
+                className="inline-block rounded-full bg-amber px-6 py-3 font-medium text-ink transition hover:bg-amber-dark hover:text-white"
+              >
+                Créer mon compte gratuitement
+              </Link>
+              <Link
+                href="#assistant"
+                className="inline-block rounded-full border border-white/30 px-6 py-3 font-medium text-white transition hover:border-white/60"
+              >
+                Discuter avec l&apos;assistant
+              </Link>
+            </div>
           </div>
         </section>
 
-        <section className="grid gap-10 border-t border-border py-16 sm:grid-cols-3">
+        <section id="assistant" className="grid grid-cols-1 gap-4 py-10 sm:grid-cols-3 sm:gap-5 sm:py-16">
           <Feature
+            tone="forest"
+            className="sm:col-span-2"
             icon={<CalendarIcon className="h-6 w-6" />}
             title="Réservation en ligne"
             description="Tes clients voient tes créneaux libres et choisissent eux-mêmes leur rendez-vous, à toute heure."
           />
           <Feature
+            tone="amber"
             icon={<ClockIcon className="h-6 w-6" />}
             title="Rappels aux deux parties"
-            description="Confirmation et rappel envoyés par email et WhatsApp, à toi et à ton client, pour réduire les absences."
+            description="Confirmation et rappel envoyés par email et WhatsApp, pour réduire les absences."
           />
           <Feature
+            tone="clay"
             icon={<AssistantIcon className="h-6 w-6" />}
-            title="Assistant pour les questions courantes"
-            description="Tarifs, horaires, politique d'annulation : un assistant répond à la place, et te transmet le reste."
+            title="Assistant qui répond à ta place"
+            description="Tarifs, horaires, annulation : un assistant répond aux questions courantes et transmet le reste."
+          />
+          <Feature
+            tone="amber"
+            className="sm:col-span-2"
+            icon={<AssistantIcon className="h-6 w-6" />}
+            title="Il peut même prendre le rendez-vous"
+            description="Pas besoin d'aller-retour : l'assistant propose un créneau libre et réserve directement pour ton client, dans la conversation."
           />
         </section>
       </main>
@@ -71,18 +90,29 @@ export default function Home() {
   );
 }
 
+const TONE_STYLES = {
+  forest: { bg: "bg-forest-soft", icon: "text-forest" },
+  amber: { bg: "bg-amber-soft", icon: "text-amber-dark" },
+  clay: { bg: "bg-clay-soft", icon: "text-clay" },
+} as const;
+
 function Feature({
   icon,
   title,
   description,
+  tone,
+  className = "",
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
+  tone: keyof typeof TONE_STYLES;
+  className?: string;
 }) {
+  const styles = TONE_STYLES[tone];
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-forest-soft text-forest">
+    <div className={`flex flex-col gap-3 rounded-3xl p-6 ${styles.bg} ${className}`}>
+      <div className={`flex h-11 w-11 items-center justify-center rounded-full bg-white/70 ${styles.icon}`}>
         {icon}
       </div>
       <h2 className="font-display text-lg text-ink">{title}</h2>
