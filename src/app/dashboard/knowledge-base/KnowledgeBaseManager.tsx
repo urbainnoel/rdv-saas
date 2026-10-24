@@ -2,11 +2,43 @@
 
 import { useEffect, useState } from "react";
 
-type Entry = { id: string; question: string; answer: string };
+type EntryType = "faq" | "info" | "logic";
+type Entry = { id: string; type: EntryType; question: string; answer: string };
+
+const TABS: { key: EntryType; label: string; help: string; titleLabel: string; contentLabel: string; titlePlaceholder: string; contentPlaceholder: string }[] = [
+  {
+    key: "faq",
+    label: "Questions fréquentes",
+    help: "Des questions précises que tes clients posent souvent, avec la réponse exacte à donner.",
+    titleLabel: "Question",
+    contentLabel: "Réponse",
+    titlePlaceholder: "Ex : Quels sont vos tarifs ?",
+    contentPlaceholder: "Ex : La séance coûte 50 000 GNF, le forfait mensuel 180 000 GNF.",
+  },
+  {
+    key: "info",
+    label: "Infos sur l'entreprise",
+    help: "Documentation plus libre : présentation, zone d'intervention, politique d'annulation, à propos de toi... Tout ce que l'assistant doit connaître même sans question précise associée.",
+    titleLabel: "Titre",
+    contentLabel: "Contenu",
+    titlePlaceholder: "Ex : Politique d'annulation",
+    contentPlaceholder: "Ex : Toute annulation à moins de 24h à l'avance n'est pas remboursée, sauf cas de force majeure.",
+  },
+  {
+    key: "logic",
+    label: "Logique de réponse",
+    help: "Des consignes de comportement pour l'assistant : comment réagir dans telle ou telle situation, au-delà d'une simple info.",
+    titleLabel: "Situation",
+    contentLabel: "Comment réagir",
+    titlePlaceholder: "Ex : Un client demande un rabais",
+    contentPlaceholder: "Ex : Explique poliment qu'il n'y a pas de rabais sur les premières séances, mais qu'il existe un forfait dégressif à partir de 4 séances.",
+  },
+];
 
 export default function KnowledgeBaseManager() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<EntryType>("faq");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -31,7 +63,7 @@ export default function KnowledgeBaseManager() {
       const res = await fetch("/api/dashboard/knowledge-base", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, answer }),
+        body: JSON.stringify({ question, answer, type: activeTab }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -50,38 +82,57 @@ export default function KnowledgeBaseManager() {
     await load();
   }
 
+  const tab = TABS.find((t) => t.key === activeTab)!;
+  const filteredEntries = entries.filter((e) => (e.type ?? "faq") === activeTab);
+
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Assistant (FAQ)</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        Renseigne ici les infos que ton assistant pourra donner automatiquement à tes clients
-        (tarifs, horaires, politique d&apos;annulation...). S&apos;il ne connaît pas la réponse, il te
-        transmettra la question plutôt que d&apos;inventer.
+      <h1 className="font-display text-2xl italic text-ink">Bibliothèque de l&apos;assistant</h1>
+      <p className="mt-1 max-w-2xl text-sm text-ink-soft">
+        Tout ce que tu ajoutes ici nourrit directement ton assistant : plus tu lui donnes d&apos;informations
+        et de consignes, mieux il comprend tes clients et répond à leur place. S&apos;il ne trouve pas la
+        réponse, il te transmet la question plutôt que d&apos;inventer.
       </p>
+
+      <div className="mt-6 flex gap-1 rounded-xl border border-border bg-surface p-1">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+              activeTab === t.key ? "bg-forest text-white" : "text-ink-soft hover:bg-paper"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-3 text-sm text-ink-soft">{tab.help}</p>
 
       <form
         onSubmit={handleAdd}
-        className="mt-6 space-y-3 rounded-xl border border-border bg-surface p-4"
+        className="mt-4 space-y-3 rounded-xl border border-border bg-surface p-4"
       >
         <div>
-          <label className="block text-xs font-medium text-ink-soft">Question</label>
+          <label className="block text-xs font-medium text-ink-soft">{tab.titleLabel}</label>
           <input
             required
             type="text"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Ex: Quels sont vos tarifs ?"
+            placeholder={tab.titlePlaceholder}
             className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-ink-soft">Réponse</label>
+          <label className="block text-xs font-medium text-ink-soft">{tab.contentLabel}</label>
           <textarea
             required
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            rows={2}
-            placeholder="Ex: La séance coûte 50 000 GNF, le forfait mensuel 180 000 GNF."
+            rows={3}
+            placeholder={tab.contentPlaceholder}
             className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
@@ -99,12 +150,12 @@ export default function KnowledgeBaseManager() {
 
       {!loading && (
         <div className="mt-6 space-y-2">
-          {entries.length === 0 ? (
+          {filteredEntries.length === 0 ? (
             <p className="text-ink-soft">
-              Aucune info renseignée pour l&apos;instant. Ajoute tes questions fréquentes ci-dessus.
+              Rien dans cette catégorie pour l&apos;instant. Ajoute ta première entrée ci-dessus.
             </p>
           ) : (
-            entries.map((entry) => (
+            filteredEntries.map((entry) => (
               <div
                 key={entry.id}
                 className="flex items-start justify-between rounded-xl border border-border bg-surface p-4"

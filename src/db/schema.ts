@@ -203,8 +203,12 @@ export const knowledgeBaseEntries = pgTable(
     entrepreneurId: text("entrepreneur_id")
       .notNull()
       .references(() => entrepreneurs.id, { onDelete: "cascade" }),
-    question: text("question").notNull(), // ex: "Quels sont vos tarifs ?"
-    answer: text("answer").notNull(),
+    // "faq" (question/réponse classique), "info" (doc libre sur l'entreprise :
+    // présentation, politique d'annulation, zone d'intervention...), ou
+    // "logic" (consigne de comportement : comment réagir dans telle situation).
+    type: text("type").notNull().default("faq"),
+    question: text("question").notNull(), // question, OU titre si type != "faq"
+    answer: text("answer").notNull(), // réponse, OU contenu si type != "faq"
     ...timestamps,
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()

@@ -1,0 +1,1 @@
+ALTER TABLE "knowledge_base_entries" ADD COLUMN "type" text DEFAULT 'faq' NOT NULL;

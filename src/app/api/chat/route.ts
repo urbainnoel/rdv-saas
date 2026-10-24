@@ -28,7 +28,11 @@ export async function POST(req: NextRequest) {
 
   const [entries, services] = await Promise.all([
     db
-      .select({ question: schema.knowledgeBaseEntries.question, answer: schema.knowledgeBaseEntries.answer })
+      .select({
+        type: schema.knowledgeBaseEntries.type,
+        question: schema.knowledgeBaseEntries.question,
+        answer: schema.knowledgeBaseEntries.answer,
+      })
       .from(schema.knowledgeBaseEntries)
       .where(eq(schema.knowledgeBaseEntries.entrepreneurId, entrepreneur.id)),
     db

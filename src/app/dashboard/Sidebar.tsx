@@ -18,7 +18,7 @@ const NAV_ITEMS = [
   { href: "/dashboard/availability", label: "Disponibilités", icon: ClockIcon },
   { href: "/dashboard/services", label: "Services", icon: TagIcon },
   { href: "/dashboard/templates", label: "Messages", icon: MessageIcon },
-  { href: "/dashboard/knowledge-base", label: "Assistant (FAQ)", icon: AssistantIcon },
+  { href: "/dashboard/knowledge-base", label: "Bibliothèque assistant", icon: AssistantIcon },
 ];
 
 export default function Sidebar({

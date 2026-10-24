@@ -20,15 +20,18 @@ export async function POST(req: NextRequest) {
   if (!entrepreneur) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const body = await req.json().catch(() => null);
-  const { question, answer } = body ?? {};
+  const { question, answer, type } = body ?? {};
+
+  const allowedTypes = ["faq", "info", "logic"];
+  const safeType = allowedTypes.includes(type) ? type : "faq";
 
   if (!question || !answer) {
-    return NextResponse.json({ error: "Question et réponse requises." }, { status: 400 });
+    return NextResponse.json({ error: "Les deux champs sont requis." }, { status: 400 });
   }
 
   const [entry] = await db
     .insert(schema.knowledgeBaseEntries)
-    .values({ entrepreneurId: entrepreneur.id, question, answer })
+    .values({ entrepreneurId: entrepreneur.id, question, answer, type: safeType })
     .returning();
 
   return NextResponse.json({ entry }, { status: 201 });

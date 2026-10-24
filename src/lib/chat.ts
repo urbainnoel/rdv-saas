@@ -12,7 +12,7 @@ const MODEL = "openai/gpt-oss-120b";
 
 export type ChatMessage = { role: "user" | "assistant"; content: string };
 
-type KnowledgeEntry = { question: string; answer: string };
+type KnowledgeEntry = { type: string; question: string; answer: string };
 type ServiceInfo = { name: string; description: string | null };
 
 export type AssistantResult = {
@@ -27,10 +27,24 @@ function buildSystemPrompt(
   entries: KnowledgeEntry[],
   services: ServiceInfo[]
 ): string {
+  const faqEntries = entries.filter((e) => e.type === "faq");
+  const infoEntries = entries.filter((e) => e.type === "info");
+  const logicEntries = entries.filter((e) => e.type === "logic");
+
   const faqText =
-    entries.length > 0
-      ? entries.map((e, i) => `${i + 1}. Q: ${e.question}\n   R: ${e.answer}`).join("\n")
-      : "(Aucune info renseignée.)";
+    faqEntries.length > 0
+      ? faqEntries.map((e, i) => `${i + 1}. Q: ${e.question}\n   R: ${e.answer}`).join("\n")
+      : "(Aucune question/réponse renseignée.)";
+
+  const infoText =
+    infoEntries.length > 0
+      ? infoEntries.map((e) => `- ${e.question} : ${e.answer}`).join("\n")
+      : "(Aucune info libre renseignée.)";
+
+  const logicText =
+    logicEntries.length > 0
+      ? logicEntries.map((e) => `- Situation « ${e.question} » → ${e.answer}`).join("\n")
+      : "(Aucune consigne particulière.)";
 
   const servicesText =
     services.length > 0
@@ -51,6 +65,12 @@ Si le client décrit un besoin, oriente-le vers le service le plus adapté. Ne t
 
 4. Répondre aux questions factuelles à partir de ces informations propres à ${businessName} (et seulement celles-ci — n'invente jamais un tarif, horaire ou détail qui n'y figure pas) :
 ${faqText}
+
+Informations générales sur ${businessName} (présentation, politiques, contexte utile même sans question précise) :
+${infoText}
+
+Consignes de comportement données par ${businessName} pour des situations particulières — applique-les en priorité quand elles correspondent à la conversation :
+${logicText}
 
 Comment gérer les cas particuliers :
 - Question factuelle sans réponse dans les informations ci-dessus : dis-le simplement et naturellement, précise que tu transmets la question à ${businessName}.

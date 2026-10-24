@@ -15,6 +15,13 @@
       "when": 1792812518719,
       "tag": "0001_spicy_vanisher",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792818582877,
+      "tag": "0002_material_darkhawk",
+      "breakpoints": true
     }
   ]
 }
