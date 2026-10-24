@@ -66,26 +66,28 @@ export default function AvailabilityManager() {
 
   const rulesByDay = Array.from({ length: 7 }, (_, d) => ({
     day: d,
-    rules: rules.filter((r) => r.dayOfWeek === d).sort((a, b) => a.startTime.localeCompare(b.startTime)),
+    rules: rules
+      .filter((r) => r.dayOfWeek === d)
+      .sort((a, b) => a.startTime.localeCompare(b.startTime)),
   }));
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Disponibilités</h1>
-      <p className="mt-1 text-neutral-500">
+      <h1 className="font-display text-2xl italic text-ink">Disponibilités</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Définis tes créneaux récurrents, semaine après semaine.
       </p>
 
       <form
         onSubmit={handleAdd}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-neutral-200 bg-white p-4"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-4"
       >
         <div>
-          <label className="block text-xs font-medium text-neutral-600">Jour</label>
+          <label className="block text-xs font-medium text-ink-soft">Jour</label>
           <select
             value={dayOfWeek}
             onChange={(e) => setDayOfWeek(Number(e.target.value))}
-            className="mt-1 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
           >
             {DAYS.map((d, i) => (
               <option key={i} value={i}>
@@ -95,25 +97,25 @@ export default function AvailabilityManager() {
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-neutral-600">Début</label>
+          <label className="block text-xs font-medium text-ink-soft">Début</label>
           <input
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="mt-1 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-neutral-600">Fin</label>
+          <label className="block text-xs font-medium text-ink-soft">Fin</label>
           <input
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="mt-1 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-neutral-600">
+          <label className="block text-xs font-medium text-ink-soft">
             Durée créneau (min)
           </label>
           <input
@@ -122,42 +124,44 @@ export default function AvailabilityManager() {
             step={5}
             value={slotDuration}
             onChange={(e) => setSlotDuration(Number(e.target.value))}
-            className="mt-1 w-24 rounded-lg border border-neutral-300 px-2 py-1.5 text-sm"
+            className="mt-1 w-24 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
           />
         </div>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-neutral-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           Ajouter
         </button>
       </form>
-      {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-2 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
+      )}
 
       {!loading && (
         <div className="mt-6 space-y-3">
           {rulesByDay.map(({ day, rules }) => (
-            <div key={day} className="rounded-xl border border-neutral-200 bg-white p-4">
-              <p className="font-medium">{DAYS[day]}</p>
+            <div key={day} className="rounded-xl border border-border bg-surface p-4">
+              <p className="font-medium text-ink">{DAYS[day]}</p>
               {rules.length === 0 ? (
-                <p className="mt-1 text-sm text-neutral-400">Fermé</p>
+                <p className="mt-1 text-sm text-ink-faint">Fermé</p>
               ) : (
                 <ul className="mt-2 space-y-1">
                   {rules.map((r) => (
                     <li
                       key={r.id}
-                      className="flex items-center justify-between text-sm text-neutral-700"
+                      className="flex items-center justify-between text-sm text-ink-soft"
                     >
                       <span>
                         {r.startTime} – {r.endTime}{" "}
-                        <span className="text-neutral-400">
+                        <span className="text-ink-faint">
                           (créneaux de {r.slotDurationMinutes} min)
                         </span>
                       </span>
                       <button
                         onClick={() => handleDelete(r.id)}
-                        className="text-xs text-red-500 hover:underline"
+                        className="text-xs text-danger hover:underline"
                       >
                         Supprimer
                       </button>

@@ -48,18 +48,18 @@ export default function TemplateEditor() {
     setSavingType(null);
   }
 
-  if (loading) return <p className="text-neutral-500">Chargement…</p>;
+  if (loading) return <p className="text-ink-soft">Chargement…</p>;
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Messages</h1>
-      <p className="mt-1 text-neutral-500">
+      <h1 className="font-display text-2xl italic text-ink">Messages</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Personnalise les messages envoyés automatiquement à tes clients. Variables
         disponibles :{" "}
-        <code className="rounded bg-neutral-100 px-1">{"{prenom_client}"}</code>{" "}
-        <code className="rounded bg-neutral-100 px-1">{"{date}"}</code>{" "}
-        <code className="rounded bg-neutral-100 px-1">{"{heure}"}</code>{" "}
-        <code className="rounded bg-neutral-100 px-1">{"{nom_entrepreneur}"}</code>
+        <code className="rounded bg-forest-soft px-1 text-forest">{"{prenom_client}"}</code>{" "}
+        <code className="rounded bg-forest-soft px-1 text-forest">{"{date}"}</code>{" "}
+        <code className="rounded bg-forest-soft px-1 text-forest">{"{heure}"}</code>{" "}
+        <code className="rounded bg-forest-soft px-1 text-forest">{"{nom_entrepreneur}"}</code>
       </p>
 
       <div className="mt-6 space-y-4">
@@ -101,14 +101,15 @@ function TemplateCard({
   const dirty = content !== template.content || enabled !== template.enabled;
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white p-4">
+    <div className="rounded-xl border border-border bg-surface p-4">
       <div className="flex items-center justify-between">
-        <p className="font-medium">{label}</p>
-        <label className="flex items-center gap-2 text-sm text-neutral-600">
+        <p className="font-medium text-ink">{label}</p>
+        <label className="flex items-center gap-2 text-sm text-ink-soft">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
+            className="accent-forest"
           />
           Activé
         </label>
@@ -117,12 +118,12 @@ function TemplateCard({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="mt-2 w-full rounded-lg border border-neutral-300 px-3 py-2 text-sm"
+        className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
       />
       <button
         onClick={() => onSave(content, enabled)}
         disabled={!dirty || saving}
-        className="mt-2 rounded-lg bg-neutral-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-40"
+        className="mt-2 rounded-lg bg-forest px-3 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-40"
       >
         {saving ? "Enregistrement…" : "Enregistrer"}
       </button>

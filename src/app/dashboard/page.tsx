@@ -1,6 +1,7 @@
 import { db, schema } from "@/db";
 import { and, eq, gte, ne, asc } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
+import { CalendarIcon } from "@/components/icons";
 
 export default async function DashboardPage() {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -26,26 +27,32 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Agenda</h1>
-      <p className="mt-1 text-neutral-500">
+      <h1 className="font-display text-2xl italic text-ink">Agenda</h1>
+      <p className="mt-1 text-sm text-ink-soft">
         Lien de réservation à partager :{" "}
-        <span className="font-mono text-sm">/{entrepreneur.slug}</span>
+        <span className="rounded bg-forest-soft px-1.5 py-0.5 font-mono text-xs text-forest">
+          /{entrepreneur.slug}
+        </span>
       </p>
 
       {upcoming.length === 0 ? (
-        <p className="mt-8 text-neutral-500">
-          Aucun rendez-vous à venir. Partage ton lien de réservation pour commencer à recevoir
-          des clients !
-        </p>
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface px-6 py-16 text-center">
+          <CalendarIcon className="h-8 w-8 text-ink-faint" />
+          <p className="text-ink-soft">Aucun rendez-vous à venir.</p>
+          <p className="max-w-sm text-sm text-ink-faint">
+            Partage ton lien de réservation pour commencer à recevoir des
+            demandes de rendez-vous.
+          </p>
+        </div>
       ) : (
-        <div className="mt-6 divide-y divide-neutral-200 rounded-xl border border-neutral-200 bg-white">
+        <div className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
           {upcoming.map(({ appointment, client }) => {
             const start = new Date(appointment.startAt);
             return (
               <div key={appointment.id} className="flex items-center justify-between p-4">
                 <div>
-                  <p className="font-medium">{client.fullName}</p>
-                  <p className="text-sm text-neutral-500">
+                  <p className="font-medium text-ink">{client.fullName}</p>
+                  <p className="text-sm text-ink-soft">
                     {start.toLocaleDateString("fr-FR", {
                       weekday: "long",
                       day: "numeric",
@@ -53,11 +60,11 @@ export default async function DashboardPage() {
                     })}{" "}
                     à {start.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                   </p>
-                  <p className="mt-0.5 text-xs text-neutral-400">
+                  <p className="mt-0.5 text-xs text-ink-faint">
                     {client.phone ?? client.email ?? "—"}
                   </p>
                 </div>
-                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                <span className="rounded-full bg-forest-soft px-3 py-1 text-xs font-medium text-forest">
                   {appointment.status === "CONFIRMED" ? "Confirmé" : appointment.status}
                 </span>
               </div>

@@ -8,8 +8,8 @@ export default async function BookingPage({
   const { slug } = await params;
 
   return (
-    <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10">
-      <div className="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm">
+    <main className="mx-auto w-full max-w-lg flex-1 px-4 py-10 sm:py-16">
+      <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8">
         <BookingWidget slug={slug} />
       </div>
     </main>

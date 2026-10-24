@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { CheckIcon } from "@/components/icons";
 
 type Slot = { startAt: string; endAt: string };
 type SlotsByDay = Record<string, Slot[]>;
@@ -66,23 +67,26 @@ export default function BookingWidget({ slug }: { slug: string }) {
   }
 
   if (loading) {
-    return <p className="text-neutral-500">Chargement des créneaux disponibles…</p>;
+    return <p className="text-ink-soft">Chargement des créneaux disponibles…</p>;
   }
 
   if (error) {
-    return <p className="text-red-600">{error}</p>;
+    return <p className="text-danger">{error}</p>;
   }
 
   if (success && selectedSlot) {
     const d = new Date(selectedSlot.startAt);
     return (
-      <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center">
-        <p className="text-lg font-semibold text-green-800">Rendez-vous confirmé ✅</p>
-        <p className="mt-2 text-green-700">
+      <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-forest-soft p-8 text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-white">
+          <CheckIcon className="h-5 w-5" />
+        </div>
+        <p className="font-display text-xl italic text-ink">Rendez-vous confirmé</p>
+        <p className="text-ink-soft">
           Le {d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} à{" "}
           {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
         </p>
-        <p className="mt-2 text-sm text-green-600">
+        <p className="text-sm text-ink-faint">
           Vous recevrez une confirmation et un rappel avant le rendez-vous.
         </p>
       </div>
@@ -91,11 +95,11 @@ export default function BookingWidget({ slug }: { slug: string }) {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">{businessName}</h1>
-      <p className="mt-1 text-neutral-500">Choisissez un créneau disponible</p>
+      <h1 className="font-display text-2xl italic text-ink">{businessName}</h1>
+      <p className="mt-1 text-sm text-ink-soft">Choisissez un créneau disponible</p>
 
       {availableDays.length === 0 ? (
-        <p className="mt-6 text-neutral-500">
+        <p className="mt-6 text-ink-soft">
           Aucun créneau disponible pour le moment. Revenez plus tard !
         </p>
       ) : (
@@ -114,8 +118,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
                   }}
                   className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-medium transition ${
                     isSelected
-                      ? "border-neutral-900 bg-neutral-900 text-white"
-                      : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+                      ? "border-forest bg-forest text-white"
+                      : "border-border bg-surface text-ink-soft hover:border-forest"
                   }`}
                 >
                   {d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
@@ -136,8 +140,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
                     onClick={() => setSelectedSlot(slot)}
                     className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
                       isSelected
-                        ? "border-neutral-900 bg-neutral-900 text-white"
-                        : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-400"
+                        ? "border-forest bg-forest text-white"
+                        : "border-border bg-surface text-ink-soft hover:border-forest"
                     }`}
                   >
                     {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
@@ -149,50 +153,54 @@ export default function BookingWidget({ slug }: { slug: string }) {
 
           {/* Formulaire client */}
           {selectedSlot && (
-            <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-t border-neutral-200 pt-6">
-              <h2 className="font-semibold">Vos informations</h2>
+            <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-t border-border pt-6">
+              <h2 className="font-medium text-ink">Vos informations</h2>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">Nom complet</label>
+                <label className="block text-sm font-medium text-ink">Nom complet</label>
                 <input
                   required
                   type="text"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
                   placeholder="Ex: Fatoumata Diallo"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">
+                <label className="block text-sm font-medium text-ink">
                   Téléphone (WhatsApp)
                 </label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
                   placeholder="+224 6XX XX XX XX"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-neutral-700">
+                <label className="block text-sm font-medium text-ink">
                   Email (optionnel)
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-300 px-3 py-2"
+                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
                   placeholder="vous@exemple.com"
                 />
               </div>
 
-              {submitError && <p className="text-sm text-red-600">{submitError}</p>}
+              {submitError && (
+                <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
+                  {submitError}
+                </p>
+              )}
 
               <button
                 type="submit"
                 disabled={submitting || !fullName || (!email && !phone)}
-                className="w-full rounded-lg bg-neutral-900 px-4 py-2.5 font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50"
+                className="w-full rounded-lg bg-amber px-4 py-2.5 font-medium text-ink transition hover:bg-amber-dark hover:text-white disabled:opacity-50"
               >
                 {submitting ? "Réservation en cours…" : "Confirmer le rendez-vous"}
               </button>
