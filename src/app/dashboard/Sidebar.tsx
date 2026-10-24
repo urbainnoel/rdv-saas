@@ -9,12 +9,14 @@ import {
   AssistantIcon,
   LinkIcon,
   LogoutIcon,
+  TagIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Agenda", icon: CalendarIcon, exact: true },
   { href: "/dashboard/availability", label: "Disponibilités", icon: ClockIcon },
+  { href: "/dashboard/services", label: "Services", icon: TagIcon },
   { href: "/dashboard/templates", label: "Messages", icon: MessageIcon },
   { href: "/dashboard/knowledge-base", label: "Assistant (FAQ)", icon: AssistantIcon },
 ];

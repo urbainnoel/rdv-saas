@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getAvailableSlotsForRange } from "@/lib/slots";
 
 // GET /api/slots?slug=fatou-coach&days=14
@@ -25,13 +25,22 @@ export async function GET(req: NextRequest) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const slotsByDay = await getAvailableSlotsForRange(entrepreneur.id, today, days);
+  const [slotsByDay, services] = await Promise.all([
+    getAvailableSlotsForRange(entrepreneur.id, today, days),
+    db
+      .select()
+      .from(schema.services)
+      .where(
+        and(eq(schema.services.entrepreneurId, entrepreneur.id), eq(schema.services.archived, false))
+      ),
+  ]);
 
   return NextResponse.json({
     entrepreneur: {
       businessName: entrepreneur.businessName,
       slug: entrepreneur.slug,
     },
+    services,
     slotsByDay,
   });
 }

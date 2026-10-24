@@ -12,6 +12,7 @@ type BookBody = {
     email?: string;
     phone?: string;
   };
+  serviceId?: string;
   notes?: string;
 };
 
@@ -27,7 +28,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "JSON invalide." }, { status: 400 });
   }
 
-  const { slug, startAt, endAt, client, notes } = body;
+  const { slug, startAt, endAt, client, serviceId, notes } = body;
 
   if (!slug || !startAt || !endAt || !client?.fullName) {
     return NextResponse.json(
@@ -50,6 +51,19 @@ export async function POST(req: NextRequest) {
 
   if (!entrepreneur) {
     return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
+  }
+
+  let validServiceId: string | null = null;
+  if (serviceId) {
+    const [service] = await db
+      .select()
+      .from(schema.services)
+      .where(and(eq(schema.services.id, serviceId), eq(schema.services.entrepreneurId, entrepreneur.id)))
+      .limit(1);
+    if (!service) {
+      return NextResponse.json({ error: "Service invalide." }, { status: 400 });
+    }
+    validServiceId = service.id;
   }
 
   const start = new Date(startAt);
@@ -118,6 +132,7 @@ export async function POST(req: NextRequest) {
     .values({
       entrepreneurId: entrepreneur.id,
       clientId: clientRecord.id,
+      serviceId: validServiceId,
       startAt: start,
       endAt: end,
       status: "CONFIRMED",

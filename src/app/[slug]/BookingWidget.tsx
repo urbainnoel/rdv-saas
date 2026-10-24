@@ -5,18 +5,22 @@ import { CheckIcon } from "@/components/icons";
 
 type Slot = { startAt: string; endAt: string };
 type SlotsByDay = Record<string, Slot[]>;
+type Service = { id: string; name: string; description: string | null; durationMinutes: number | null };
 
 export default function BookingWidget({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [businessName, setBusinessName] = useState<string>("");
+  const [services, setServices] = useState<Service[]>([]);
   const [slotsByDay, setSlotsByDay] = useState<SlotsByDay>({});
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -29,6 +33,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
       })
       .then((data) => {
         setBusinessName(data.entrepreneur.businessName);
+        setServices(data.services ?? []);
         setSlotsByDay(data.slotsByDay);
         const firstDay = Object.keys(data.slotsByDay)[0];
         setSelectedDay(firstDay ?? null);
@@ -38,6 +43,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
   }, [slug]);
 
   const availableDays = useMemo(() => Object.keys(slotsByDay).sort(), [slotsByDay]);
+  const needsServiceStep = services.length > 0;
+  const serviceStepDone = !needsServiceStep || selectedServiceId !== null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,6 +60,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
           slug,
           startAt: selectedSlot.startAt,
           endAt: selectedSlot.endAt,
+          serviceId: selectedServiceId || undefined,
+          notes: notes || undefined,
           client: { fullName, email: email || undefined, phone: phone || undefined },
         }),
       });
@@ -96,115 +105,173 @@ export default function BookingWidget({ slug }: { slug: string }) {
   return (
     <div>
       <h1 className="font-display text-2xl italic text-ink">{businessName}</h1>
-      <p className="mt-1 text-sm text-ink-soft">Choisissez un créneau disponible</p>
+      <p className="mt-1 text-sm text-ink-soft">
+        {!serviceStepDone ? "Que souhaitez-vous réserver ?" : "Choisissez un créneau disponible"}
+      </p>
 
-      {availableDays.length === 0 ? (
-        <p className="mt-6 text-ink-soft">
-          Aucun créneau disponible pour le moment. Revenez plus tard !
-        </p>
-      ) : (
+      {/* Étape 1 (si des services existent) : choix du service */}
+      {needsServiceStep && !serviceStepDone && (
+        <div className="mt-6 space-y-2">
+          {services.map((s) => (
+            <button
+              key={s.id}
+              onClick={() => setSelectedServiceId(s.id)}
+              className="flex w-full items-start justify-between rounded-xl border border-border bg-surface p-4 text-left transition hover:border-forest"
+            >
+              <div>
+                <p className="font-medium text-ink">{s.name}</p>
+                {s.description && <p className="mt-0.5 text-sm text-ink-soft">{s.description}</p>}
+              </div>
+              {s.durationMinutes && (
+                <span className="shrink-0 text-xs text-ink-faint">{s.durationMinutes} min</span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {serviceStepDone && (
         <>
-          {/* Sélecteur de jour */}
-          <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
-            {availableDays.map((day) => {
-              const d = new Date(day + "T00:00:00");
-              const isSelected = day === selectedDay;
-              return (
-                <button
-                  key={day}
-                  onClick={() => {
-                    setSelectedDay(day);
-                    setSelectedSlot(null);
-                  }}
-                  className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-medium transition ${
-                    isSelected
-                      ? "border-forest bg-forest text-white"
-                      : "border-border bg-surface text-ink-soft hover:border-forest"
-                  }`}
-                >
-                  {d.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" })}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Sélecteur de créneau horaire */}
-          {selectedDay && (
-            <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
-              {slotsByDay[selectedDay].map((slot) => {
-                const d = new Date(slot.startAt);
-                const isSelected = selectedSlot?.startAt === slot.startAt;
-                return (
-                  <button
-                    key={slot.startAt}
-                    onClick={() => setSelectedSlot(slot)}
-                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
-                      isSelected
-                        ? "border-forest bg-forest text-white"
-                        : "border-border bg-surface text-ink-soft hover:border-forest"
-                    }`}
-                  >
-                    {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
-                  </button>
-                );
-              })}
-            </div>
+          {needsServiceStep && (
+            <button
+              onClick={() => {
+                setSelectedServiceId(null);
+                setSelectedSlot(null);
+              }}
+              className="mt-3 text-sm text-forest underline"
+            >
+              {services.find((s) => s.id === selectedServiceId)?.name} — changer
+            </button>
           )}
 
-          {/* Formulaire client */}
-          {selectedSlot && (
-            <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-t border-border pt-6">
-              <h2 className="font-medium text-ink">Vos informations</h2>
-              <div>
-                <label className="block text-sm font-medium text-ink">Nom complet</label>
-                <input
-                  required
-                  type="text"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
-                  placeholder="Ex: Fatoumata Diallo"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink">
-                  Téléphone (WhatsApp)
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
-                  placeholder="+224 6XX XX XX XX"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-ink">
-                  Email (optionnel)
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
-                  placeholder="vous@exemple.com"
-                />
+          {availableDays.length === 0 ? (
+            <p className="mt-6 text-ink-soft">
+              Aucun créneau disponible pour le moment. Revenez plus tard !
+            </p>
+          ) : (
+            <>
+              {/* Sélecteur de jour */}
+              <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
+                {availableDays.map((day) => {
+                  const d = new Date(day + "T00:00:00");
+                  const isSelected = day === selectedDay;
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => {
+                        setSelectedDay(day);
+                        setSelectedSlot(null);
+                      }}
+                      className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                        isSelected
+                          ? "border-forest bg-forest text-white"
+                          : "border-border bg-surface text-ink-soft hover:border-forest"
+                      }`}
+                    >
+                      {d.toLocaleDateString("fr-FR", {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </button>
+                  );
+                })}
               </div>
 
-              {submitError && (
-                <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
-                  {submitError}
-                </p>
+              {/* Sélecteur de créneau horaire */}
+              {selectedDay && (
+                <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {slotsByDay[selectedDay].map((slot) => {
+                    const d = new Date(slot.startAt);
+                    const isSelected = selectedSlot?.startAt === slot.startAt;
+                    return (
+                      <button
+                        key={slot.startAt}
+                        onClick={() => setSelectedSlot(slot)}
+                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                          isSelected
+                            ? "border-forest bg-forest text-white"
+                            : "border-border bg-surface text-ink-soft hover:border-forest"
+                        }`}
+                      >
+                        {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                      </button>
+                    );
+                  })}
+                </div>
               )}
 
-              <button
-                type="submit"
-                disabled={submitting || !fullName || (!email && !phone)}
-                className="w-full rounded-lg bg-amber px-4 py-2.5 font-medium text-ink transition hover:bg-amber-dark hover:text-white disabled:opacity-50"
-              >
-                {submitting ? "Réservation en cours…" : "Confirmer le rendez-vous"}
-              </button>
-            </form>
+              {/* Formulaire client */}
+              {selectedSlot && (
+                <form onSubmit={handleSubmit} className="mt-8 space-y-4 border-t border-border pt-6">
+                  <h2 className="font-medium text-ink">Vos informations</h2>
+                  <div>
+                    <label className="block text-sm font-medium text-ink">Nom complet</label>
+                    <input
+                      required
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      placeholder="Ex: Fatoumata Diallo"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-ink">
+                      Téléphone (WhatsApp)
+                    </label>
+                    <input
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      placeholder="+224 6XX XX XX XX"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-ink">
+                      Email (optionnel)
+                    </label>
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      placeholder="vous@exemple.com"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-ink">
+                      Un détail à préciser ? (optionnel)
+                    </label>
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      rows={2}
+                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      placeholder="Ex: première séance, j'ai une douleur au genou droit"
+                    />
+                    <p className="mt-1 text-xs text-ink-faint">
+                      Cette note sera visible par {businessName || "le professionnel"} pour préparer votre rendez-vous.
+                    </p>
+                  </div>
+
+                  {submitError && (
+                    <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">
+                      {submitError}
+                    </p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submitting || !fullName || (!email && !phone)}
+                    className="w-full rounded-lg bg-amber px-4 py-2.5 font-medium text-ink transition hover:bg-amber-dark hover:text-white disabled:opacity-50"
+                  >
+                    {submitting ? "Réservation en cours…" : "Confirmer le rendez-vous"}
+                  </button>
+                </form>
+              )}
+            </>
           )}
         </>
       )}

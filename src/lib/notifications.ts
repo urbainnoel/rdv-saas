@@ -77,3 +77,20 @@ export async function sendReminder({
     `Rappel : RDV avec ${client.fullName} le ${vars.date} à ${vars.heure}.`
   );
 }
+
+// Quand l'assistant (chatbot) ne trouve pas de réponse dans la FAQ, on
+// transmet la question à l'entrepreneur plutôt que de laisser le client
+// sans réponse.
+export async function notifyUnansweredQuestion({
+  entrepreneur,
+  question,
+}: {
+  entrepreneur: Entrepreneur;
+  question: string;
+}) {
+  await dispatch(
+    "email",
+    entrepreneur.email,
+    `Un client a posé une question à ton assistant sans réponse disponible :\n« ${question} »\n\nPense à y répondre toi-même, et à l'ajouter à ta FAQ si elle revient souvent.`
+  );
+}

@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db, schema } from "@/db";
+import { eq } from "drizzle-orm";
+import { askAssistant, type ChatMessage } from "@/lib/chat";
+import { notifyUnansweredQuestion } from "@/lib/notifications";
+
+type ChatBody = {
+  slug: string;
+  messages: ChatMessage[];
+};
+
+export async function POST(req: NextRequest) {
+  const body = (await req.json().catch(() => null)) as ChatBody | null;
+
+  if (!body?.slug || !Array.isArray(body.messages) || body.messages.length === 0) {
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+  }
+
+  const [entrepreneur] = await db
+    .select()
+    .from(schema.entrepreneurs)
+    .where(eq(schema.entrepreneurs.slug, body.slug))
+    .limit(1);
+
+  if (!entrepreneur) {
+    return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
+  }
+
+  const entries = await db
+    .select({ question: schema.knowledgeBaseEntries.question, answer: schema.knowledgeBaseEntries.answer })
+    .from(schema.knowledgeBaseEntries)
+    .where(eq(schema.knowledgeBaseEntries.entrepreneurId, entrepreneur.id));
+
+  try {
+    const { answer, forward } = await askAssistant({
+      businessName: entrepreneur.businessName,
+      entries,
+      history: body.messages,
+    });
+
+    if (forward) {
+      const lastUserMessage = [...body.messages].reverse().find((m) => m.role === "user");
+      notifyUnansweredQuestion({
+        entrepreneur,
+        question: lastUserMessage?.content ?? "(question non identifiée)",
+      }).catch((err) => console.error("Erreur notification question non répondue:", err));
+    }
+
+    return NextResponse.json({ answer, forward });
+  } catch (err) {
+    console.error("Erreur assistant:", err);
+    return NextResponse.json(
+      {
+        answer:
+          "Désolé, l'assistant rencontre un souci technique. Vous pouvez contacter l'entrepreneur directement.",
+        forward: true,
+      },
+      { status: 200 }
+    );
+  }
+}

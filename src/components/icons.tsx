@@ -75,6 +75,20 @@ export function LogoutIcon({ className }: IconProps) {
   );
 }
 
+export function TagIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <path
+        d="M11.5 4h-5A2.5 2.5 0 0 0 4 6.5v5c0 .66.26 1.3.73 1.77l8 8a2.5 2.5 0 0 0 3.54 0l4.5-4.5a2.5 2.5 0 0 0 0-3.54l-8-8A2.5 2.5 0 0 0 11.5 4Z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <circle cx="9" cy="9" r="1.3" fill="currentColor" />
+    </svg>
+  );
+}
+
 export function CheckIcon({ className }: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>

@@ -8,6 +8,13 @@
       "when": 1792810055843,
       "tag": "0000_brave_orphan",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792812518719,
+      "tag": "0001_spicy_vanisher",
+      "breakpoints": true
     }
   ]
 }

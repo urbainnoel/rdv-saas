@@ -13,9 +13,11 @@ export default async function DashboardPage() {
     .select({
       appointment: schema.appointments,
       client: schema.clients,
+      service: schema.services,
     })
     .from(schema.appointments)
     .innerJoin(schema.clients, eq(schema.appointments.clientId, schema.clients.id))
+    .leftJoin(schema.services, eq(schema.appointments.serviceId, schema.services.id))
     .where(
       and(
         eq(schema.appointments.entrepreneurId, entrepreneur.id),
@@ -46,11 +48,11 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
-          {upcoming.map(({ appointment, client }) => {
+          {upcoming.map(({ appointment, client, service }) => {
             const start = new Date(appointment.startAt);
             return (
-              <div key={appointment.id} className="flex items-center justify-between p-4">
-                <div>
+              <div key={appointment.id} className="flex items-start justify-between gap-4 p-4">
+                <div className="min-w-0">
                   <p className="font-medium text-ink">{client.fullName}</p>
                   <p className="text-sm text-ink-soft">
                     {start.toLocaleDateString("fr-FR", {
@@ -63,8 +65,18 @@ export default async function DashboardPage() {
                   <p className="mt-0.5 text-xs text-ink-faint">
                     {client.phone ?? client.email ?? "—"}
                   </p>
+                  {service && (
+                    <p className="mt-2 inline-block rounded-full bg-amber-soft px-2.5 py-0.5 text-xs font-medium text-amber-dark">
+                      {service.name}
+                    </p>
+                  )}
+                  {appointment.notes && (
+                    <p className="mt-2 rounded-lg bg-paper px-3 py-2 text-sm text-ink-soft">
+                      « {appointment.notes} »
+                    </p>
+                  )}
                 </div>
-                <span className="rounded-full bg-forest-soft px-3 py-1 text-xs font-medium text-forest">
+                <span className="shrink-0 rounded-full bg-forest-soft px-3 py-1 text-xs font-medium text-forest">
                   {appointment.status === "CONFIRMED" ? "Confirmé" : appointment.status}
                 </span>
               </div>

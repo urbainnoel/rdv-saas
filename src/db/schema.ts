@@ -110,6 +110,28 @@ export const clients = pgTable(
 );
 
 // ----------------------------------------------------------------------------
+// SERVICES — ce que le client peut choisir au moment de réserver
+// ("Consultation 30 min", "Suivi mensuel"...), défini par l'entrepreneur
+// ----------------------------------------------------------------------------
+export const services = pgTable(
+  "services",
+  {
+    id: id(),
+    entrepreneurId: text("entrepreneur_id")
+      .notNull()
+      .references(() => entrepreneurs.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    description: text("description"),
+    durationMinutes: integer("duration_minutes"),
+    archived: boolean("archived").notNull().default(false),
+    ...timestamps,
+  },
+  (table) => ({
+    entrepreneurIdx: index("services_entrepreneur_idx").on(table.entrepreneurId),
+  })
+);
+
+// ----------------------------------------------------------------------------
 // RENDEZ-VOUS
 // ----------------------------------------------------------------------------
 // status: PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW (voir src/lib/enums.ts)
@@ -123,6 +145,9 @@ export const appointments = pgTable(
     clientId: text("client_id")
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
+    serviceId: text("service_id").references(() => services.id, {
+      onDelete: "set null",
+    }),
     startAt: timestamp("start_at", { withTimezone: true }).notNull(),
     endAt: timestamp("end_at", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("PENDING"),
