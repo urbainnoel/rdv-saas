@@ -2,6 +2,7 @@ import { db, schema } from "@/db";
 import { and, eq, gte, ne, asc } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
 import { CalendarIcon } from "@/components/icons";
+import AppointmentActions from "./AppointmentActions";
 
 export default async function DashboardPage() {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -51,7 +52,10 @@ export default async function DashboardPage() {
           {upcoming.map(({ appointment, client, service }) => {
             const start = new Date(appointment.startAt);
             return (
-              <div key={appointment.id} className="flex items-start justify-between gap-4 p-4">
+              <div
+                key={appointment.id}
+                className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+              >
                 <div className="min-w-0">
                   <p className="font-medium text-ink">{client.fullName}</p>
                   <p className="text-sm text-ink-soft">
@@ -76,9 +80,11 @@ export default async function DashboardPage() {
                     </p>
                   )}
                 </div>
-                <span className="shrink-0 rounded-full bg-forest-soft px-3 py-1 text-xs font-medium text-forest">
-                  {appointment.status === "CONFIRMED" ? "Confirmé" : appointment.status}
-                </span>
+                <AppointmentActions
+                  appointmentId={appointment.id}
+                  slug={entrepreneur.slug}
+                  clientName={client.fullName}
+                />
               </div>
             );
           })}

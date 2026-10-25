@@ -195,3 +195,38 @@ export async function notifyNewLead({
     `Nouveau prospect intéressé via ton assistant : ${leadName} (${leadContact}).\n\nIl/elle n'a pas encore réservé — pense à le/la recontacter. Tu retrouves tous tes prospects dans ton tableau de bord, rubrique « Prospects ».`
   );
 }
+
+// Annulation d'un RDV par l'entrepreneur : on prévient le client.
+export async function sendCancellationNotice({
+  entrepreneur,
+  client,
+  appointment,
+}: {
+  entrepreneur: Entrepreneur;
+  client: Client;
+  appointment: Appointment;
+}) {
+  const vars = buildVars(entrepreneur, client, appointment);
+  const message = `Bonjour ${vars.prenom_client}, votre rendez-vous avec ${entrepreneur.businessName} du ${vars.date} à ${vars.heure} est annulé. Vous pouvez reprendre un créneau quand vous le souhaitez.`;
+  await dispatch("email", client.email, `Rendez-vous annulé — ${entrepreneur.businessName}`, message);
+  await dispatch("whatsapp", client.phone, "", message);
+}
+
+// Report d'un RDV par l'entrepreneur : on donne au client le nouvel horaire.
+export async function sendRescheduleNotice({
+  entrepreneur,
+  client,
+  appointment,
+  previousStart,
+}: {
+  entrepreneur: Entrepreneur;
+  client: Client;
+  appointment: Appointment;
+  previousStart: Date;
+}) {
+  const vars = buildVars(entrepreneur, client, appointment);
+  const before = previousStart.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const message = `Bonjour ${vars.prenom_client}, votre rendez-vous avec ${entrepreneur.businessName} prévu le ${before} est déplacé au ${vars.date} à ${vars.heure}. À bientôt !`;
+  await dispatch("email", client.email, `Rendez-vous déplacé — ${entrepreneur.businessName}`, message);
+  await dispatch("whatsapp", client.phone, "", message);
+}
