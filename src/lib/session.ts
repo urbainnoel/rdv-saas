@@ -42,6 +42,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 
   try {
     const { payload } = await jwtVerify(token, getSecret());
+    if (payload.purpose || typeof payload.entrepreneurId !== "string") return null;
     return payload as unknown as SessionPayload;
   } catch {
     return null;
@@ -51,4 +52,28 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function destroySession() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
+}
+
+// Jetons courts signés (ex. profil Google en attente du nom d'activité).
+// Le champ `purpose` empêche d'utiliser un tel jeton comme session.
+export async function signTemporaryToken(
+  purpose: string,
+  data: Record<string, unknown>,
+  ttl: string
+): Promise<string> {
+  return new SignJWT({ ...data, purpose })
+    .setProtectedHeader({ alg: "HS256" })
+    .setIssuedAt()
+    .setExpirationTime(ttl)
+    .sign(getSecret());
+}
+
+export async function verifyTemporaryToken<T>(purpose: string, token: string): Promise<T | null> {
+  try {
+    const { payload } = await jwtVerify(token, getSecret());
+    if (payload.purpose !== purpose) return null;
+    return payload as T;
+  } catch {
+    return null;
+  }
 }

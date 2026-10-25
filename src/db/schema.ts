@@ -28,7 +28,10 @@ export const entrepreneurs = pgTable(
   {
     id: id(),
     email: text("email").notNull(),
-    passwordHash: text("password_hash").notNull(),
+    // null pour un compte créé via Google (pas de mot de passe).
+    passwordHash: text("password_hash"),
+    // Identifiant Google (« sub ») quand le compte est lié à Google.
+    googleId: text("google_id"),
     businessName: text("business_name").notNull(),
     slug: text("slug").notNull(), // utilisé dans l'URL publique : tonapp.com/{slug}
     timezone: text("timezone").notNull().default("Africa/Conakry"),
@@ -58,6 +61,7 @@ export const entrepreneurs = pgTable(
   (table) => ({
     emailIdx: uniqueIndex("entrepreneurs_email_idx").on(table.email),
     slugIdx: uniqueIndex("entrepreneurs_slug_idx").on(table.slug),
+    googleIdx: uniqueIndex("entrepreneurs_google_id_idx").on(table.googleId),
   })
 );
 

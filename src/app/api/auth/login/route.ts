@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, schema } from "@/db";
-import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { createSession } from "@/lib/session";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { emailVerificationRequired } from "@/lib/email-verification";
+import { findEntrepreneurByEmail } from "@/lib/accounts";
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -26,14 +25,18 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const [entrepreneur] = await db
-    .select()
-    .from(schema.entrepreneurs)
-    .where(eq(schema.entrepreneurs.email, email))
-    .limit(1);
+  const entrepreneur = await findEntrepreneurByEmail(String(email));
 
   if (!entrepreneur) {
     return NextResponse.json({ error: "Identifiants incorrects." }, { status: 401 });
+  }
+
+  // Compte créé avec Google : pas de mot de passe à comparer.
+  if (!entrepreneur.passwordHash) {
+    return NextResponse.json(
+      { error: "Ce compte a été créé avec Google : utilise « Continuer avec Google »." },
+      { status: 401 }
+    );
   }
 
   const valid = await bcrypt.compare(password, entrepreneur.passwordHash);

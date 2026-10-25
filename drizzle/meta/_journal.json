@@ -64,6 +64,13 @@
       "when": 1792885825813,
       "tag": "0008_low_captain_midlands",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1792887388555,
+      "tag": "0009_flippant_tarot",
+      "breakpoints": true
     }
   ]
 }

@@ -5,8 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
 import ResendVerification from "@/components/ResendVerification";
+import GoogleButton from "@/components/GoogleButton";
 
-export default function LoginForm({ initialError }: { initialError: string | null }) {
+export default function LoginForm({
+  initialError,
+  googleEnabled,
+}: {
+  initialError: string | null;
+  googleEnabled: boolean;
+}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -47,7 +54,9 @@ export default function LoginForm({ initialError }: { initialError: string | nul
 
       <h1 className="font-display text-2xl italic text-ink">Connexion</h1>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+      {googleEnabled && <GoogleButton />}
+
+      <form onSubmit={handleSubmit} className={`${googleEnabled ? "mt-6" : "mt-8"} space-y-5`}>
         <div>
           <label className="block text-sm font-medium text-ink">Email</label>
           <input
