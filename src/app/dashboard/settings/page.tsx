@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
 import { getCurrentEntrepreneur } from "@/lib/auth";
 import NotificationEmailForm from "./NotificationEmailForm";
+import TimezoneForm from "./TimezoneForm";
+import { safeTimeZone } from "@/lib/timezone";
 
 export default async function SettingsPage() {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -15,6 +17,12 @@ export default async function SettingsPage() {
       </p>
 
       <NotificationEmailForm accountEmail={entrepreneur.email} initialValue={entrepreneur.notificationEmail} />
+
+      <h2 className="mt-10 font-display text-lg italic text-ink">Fuseau horaire</h2>
+      <p className="mt-1 text-sm text-ink-soft">
+        Tes disponibilités, tes créneaux et les heures des rappels sont exprimés dans ce fuseau.
+      </p>
+      <TimezoneForm initialValue={safeTimeZone(entrepreneur.timezone)} />
     </div>
   );
 }

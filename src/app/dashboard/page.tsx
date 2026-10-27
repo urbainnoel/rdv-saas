@@ -3,12 +3,14 @@ import { and, eq, gte, ne, asc } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
 import { CalendarIcon } from "@/components/icons";
 import AppointmentActions from "./AppointmentActions";
+import { formatDateFr, formatTimeFr, safeTimeZone } from "@/lib/timezone";
 
 export default async function DashboardPage() {
   const entrepreneur = await getCurrentEntrepreneur();
   if (!entrepreneur) return null;
 
   const now = new Date();
+  const tz = safeTimeZone(entrepreneur.timezone);
 
   const upcoming = await db
     .select({
@@ -59,12 +61,8 @@ export default async function DashboardPage() {
                 <div className="min-w-0">
                   <p className="font-medium text-ink">{client.fullName}</p>
                   <p className="text-sm text-ink-soft">
-                    {start.toLocaleDateString("fr-FR", {
-                      weekday: "long",
-                      day: "numeric",
-                      month: "long",
-                    })}{" "}
-                    à {start.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    {formatDateFr(start, tz)}{" "}
+                    à {formatTimeFr(start, tz)}
                   </p>
                   <p className="mt-0.5 text-xs text-ink-faint">
                     {client.phone ?? client.email ?? "—"}
@@ -84,6 +82,7 @@ export default async function DashboardPage() {
                   appointmentId={appointment.id}
                   slug={entrepreneur.slug}
                   clientName={client.fullName}
+                  timezone={tz}
                 />
               </div>
             );

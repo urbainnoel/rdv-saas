@@ -13,6 +13,7 @@
 
 import { schema } from "@/db";
 import { DEFAULT_MESSAGE_TEMPLATES, MessageTemplateType } from "./enums";
+import { formatDateFr, formatTimeFr, safeTimeZone } from "./timezone";
 
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 type Client = typeof schema.clients.$inferSelect;
@@ -37,8 +38,8 @@ function buildVars(entrepreneur: Entrepreneur, client: Client, appointment: Appo
   const start = new Date(appointment.startAt);
   return {
     prenom_client: client.fullName.split(" ")[0],
-    date: start.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }),
-    heure: start.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+    date: formatDateFr(start, safeTimeZone(entrepreneur.timezone)),
+    heure: formatTimeFr(start, safeTimeZone(entrepreneur.timezone)),
     nom_entrepreneur: entrepreneur.businessName,
   };
 }
@@ -225,7 +226,7 @@ export async function sendRescheduleNotice({
   previousStart: Date;
 }) {
   const vars = buildVars(entrepreneur, client, appointment);
-  const before = previousStart.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" });
+  const before = formatDateFr(previousStart, safeTimeZone(entrepreneur.timezone));
   const message = `Bonjour ${vars.prenom_client}, votre rendez-vous avec ${entrepreneur.businessName} prévu le ${before} est déplacé au ${vars.date} à ${vars.heure}. À bientôt !`;
   await dispatch("email", client.email, `Rendez-vous déplacé — ${entrepreneur.businessName}`, message);
   await dispatch("whatsapp", client.phone, "", message);

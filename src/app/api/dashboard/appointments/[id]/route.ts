@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { and, eq, ne } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
-import { getAvailableSlotsForDay } from "@/lib/slots";
+import { isFreeSlot } from "@/lib/slots";
 import { sendCancellationNotice, sendRescheduleNotice } from "@/lib/notifications";
 
 type Body =
@@ -54,13 +54,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     // Même règle qu'à la réservation : uniquement un vrai créneau libre.
-    const day = new Date(startAt);
-    day.setHours(0, 0, 0, 0);
-    const free = await getAvailableSlotsForDay(entrepreneur.id, day);
-    const ok = free.some(
-      (s) => s.startAt.getTime() === startAt.getTime() && s.endAt.getTime() === endAt.getTime()
-    );
-    if (!ok) {
+    if (!(await isFreeSlot(entrepreneur, startAt, endAt))) {
       return NextResponse.json(
         { error: "Ce créneau n'est plus libre. Choisis-en un autre." },
         { status: 409 }

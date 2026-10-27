@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { and, eq } from "drizzle-orm";
 import { getAvailableSlotsForRange } from "@/lib/slots";
+import { safeTimeZone } from "@/lib/timezone";
 
 // GET /api/slots?slug=fatou-coach&days=14
 export async function GET(req: NextRequest) {
@@ -22,11 +23,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   const [slotsByDay, services] = await Promise.all([
-    getAvailableSlotsForRange(entrepreneur.id, today, days),
+    getAvailableSlotsForRange(entrepreneur, Math.min(Math.max(days, 1), 60)),
     db
       .select()
       .from(schema.services)
@@ -40,6 +38,8 @@ export async function GET(req: NextRequest) {
       businessName: entrepreneur.businessName,
       slug: entrepreneur.slug,
     },
+    // Fuseau de l'entrepreneur : les horaires s'affichent dans ce fuseau.
+    timezone: safeTimeZone(entrepreneur.timezone),
     services,
     slotsByDay,
   });

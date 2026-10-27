@@ -5,7 +5,7 @@
 import { db, schema } from "@/db";
 import { and, eq, ne } from "drizzle-orm";
 import { sendAppointmentConfirmation } from "@/lib/notifications";
-import { getAvailableSlotsForDay } from "@/lib/slots";
+import { isFreeSlot } from "@/lib/slots";
 import { markLeadConverted } from "@/lib/leads";
 
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
@@ -82,13 +82,7 @@ export async function createAppointment({
   // disponibilités de l'entrepreneur (jour, horaire, durée, hors créneaux
   // bloqués). Sans ce contrôle, un appel direct à l'API pouvait réserver
   // n'importe quand, par exemple à 3 h du matin un dimanche.
-  const day = new Date(startAt);
-  day.setHours(0, 0, 0, 0);
-  const freeSlots = await getAvailableSlotsForDay(entrepreneur.id, day);
-  const matchesFreeSlot = freeSlots.some(
-    (s) => s.startAt.getTime() === startAt.getTime() && s.endAt.getTime() === endAt.getTime()
-  );
-  if (!matchesFreeSlot) {
+  if (!(await isFreeSlot(entrepreneur, startAt, endAt))) {
     return {
       ok: false,
       status: 400,

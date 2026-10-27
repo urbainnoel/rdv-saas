@@ -13,6 +13,9 @@ export default function BookingWidget({ slug }: { slug: string }) {
   const [businessName, setBusinessName] = useState<string>("");
   const [services, setServices] = useState<Service[]>([]);
   const [slotsByDay, setSlotsByDay] = useState<SlotsByDay>({});
+  // Fuseau de l'entrepreneur : tous les horaires s'affichent dans ce fuseau.
+  const [timezone, setTimezone] = useState<string>("Africa/Conakry");
+  const [visitorTimezone, setVisitorTimezone] = useState<string | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
@@ -35,6 +38,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
         setBusinessName(data.entrepreneur.businessName);
         setServices(data.services ?? []);
         setSlotsByDay(data.slotsByDay);
+        if (data.timezone) setTimezone(data.timezone);
+        setVisitorTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone ?? null);
         const firstDay = Object.keys(data.slotsByDay)[0];
         setSelectedDay(firstDay ?? null);
       })
@@ -92,8 +97,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
         </div>
         <p className="font-display text-xl italic text-ink">Rendez-vous confirmé</p>
         <p className="text-ink-soft">
-          Le {d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })} à{" "}
-          {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+          Le {d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: timezone })} à{" "}
+          {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: timezone })}
         </p>
         <p className="text-sm text-ink-faint">
           Vous recevrez une confirmation et un rappel avant le rendez-vous.
@@ -153,7 +158,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
               {/* Sélecteur de jour */}
               <div className="mt-6 flex gap-2 overflow-x-auto pb-2">
                 {availableDays.map((day) => {
-                  const d = new Date(day + "T00:00:00");
+                  const d = new Date(day + "T12:00:00Z");
                   const isSelected = day === selectedDay;
                   return (
                     <button
@@ -172,11 +177,19 @@ export default function BookingWidget({ slug }: { slug: string }) {
                         weekday: "short",
                         day: "numeric",
                         month: "short",
+                        timeZone: "UTC",
                       })}
                     </button>
                   );
                 })}
               </div>
+
+              {/* Visiteur dans un autre fuseau : on précise l'heure de référence. */}
+              {visitorTimezone && visitorTimezone !== timezone && (
+                <p className="mt-3 text-xs text-ink-faint">
+                  Horaires à l&apos;heure locale de {businessName} ({timezone.split("/").pop()?.replace(/_/g, " ")}).
+                </p>
+              )}
 
               {/* Sélecteur de créneau horaire */}
               {selectedDay && (
@@ -194,7 +207,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                             : "border-border bg-surface text-ink-soft hover:border-forest"
                         }`}
                       >
-                        {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                        {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: timezone })}
                       </button>
                     );
                   })}

@@ -11,10 +11,12 @@ export default function AppointmentActions({
   appointmentId,
   slug,
   clientName,
+  timezone,
 }: {
   appointmentId: string;
   slug: string;
   clientName: string;
+  timezone: string;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"idle" | "confirm-cancel" | "reschedule">("idle");
@@ -118,7 +120,7 @@ export default function AppointmentActions({
                     onClick={() => send({ action: "reschedule", ...slot })}
                     className="rounded-md bg-surface px-1 py-1.5 text-xs text-ink transition hover:bg-forest hover:text-white disabled:opacity-50"
                   >
-                    {new Date(slot.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(slot.startAt).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: timezone })}
                   </button>
                 ))}
             </div>

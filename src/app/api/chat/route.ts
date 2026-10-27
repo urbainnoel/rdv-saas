@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { askAssistant, type ChatMessage, type SlotOption } from "@/lib/chat";
 import { notifyUnansweredQuestion, notifyNewLead } from "@/lib/notifications";
 import { getAvailableSlotsForRange, type Slot } from "@/lib/slots";
+import { formatDateFr, formatTimeFr, safeTimeZone } from "@/lib/timezone";
 import { createAppointment } from "@/lib/booking";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { saveLead } from "@/lib/leads";
@@ -30,6 +31,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Entrepreneur introuvable." }, { status: 404 });
   }
 
+  const tz = safeTimeZone(entrepreneur.timezone);
+
   // Anti-abus : un visiteur ne peut pas inonder l'assistant, et chaque
   // entreprise a un plafond quotidien — sinon un seul abuseur pourrait
   // épuiser le quota d'IA partagé et casser l'assistant de tout le monde.
@@ -45,9 +48,6 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
   const [entries, services, slotsByDay] = await Promise.all([
     db
       .select({
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
       .select()
       .from(schema.services)
       .where(and(eq(schema.services.entrepreneurId, entrepreneur.id), eq(schema.services.archived, false))),
-    getAvailableSlotsForRange(entrepreneur.id, today, 10),
+    getAvailableSlotsForRange(entrepreneur, 10),
   ]);
 
   // On numérote les prochains créneaux libres (toutes journées confondues),
@@ -73,11 +73,7 @@ export async function POST(req: NextRequest) {
 
   const slotOptions: SlotOption[] = flatSlots.map((slot, i) => ({
     index: i + 1,
-    label: `${slot.startAt.toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "numeric",
-      month: "long",
-    })} à ${slot.startAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`,
+    label: `${formatDateFr(slot.startAt, tz)} à ${formatTimeFr(slot.startAt, tz)}`,
   }));
 
   try {
@@ -126,10 +122,7 @@ export async function POST(req: NextRequest) {
 
         if (result.ok) {
           const d = slot.startAt;
-          finalAnswer = `C'est confirmé, ${booking.clientName.split(" ")[0]} ! Votre rendez-vous est réservé pour le ${d.toLocaleDateString(
-            "fr-FR",
-            { weekday: "long", day: "numeric", month: "long" }
-          )} à ${d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}. Vous recevrez une confirmation.`;
+          finalAnswer = `C'est confirmé, ${booking.clientName.split(" ")[0]} ! Votre rendez-vous est réservé pour le ${formatDateFr(d, tz)} à ${formatTimeFr(d, tz)}. Vous recevrez une confirmation.`;
         } else if (result.status === 409) {
           finalAnswer = "Oups, ce créneau vient d'être pris par quelqu'un d'autre. Voulez-vous en choisir un autre ?";
         } else {
