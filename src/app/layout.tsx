@@ -15,8 +15,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "RDV Assistant",
-  description:
-    "Prise de rendez-vous en ligne et rappels automatiques pour entrepreneurs indépendants.",
+  // Repris dans les aperçus de lien (WhatsApp, réseaux sociaux) et sur Google.
+  description: "Vos clients réservent seuls. Vous, vous travaillez.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

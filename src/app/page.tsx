@@ -46,8 +46,8 @@ export default function Home() {
             Pour coachs, consultants et indépendants
           </p>
           <h1 className="max-w-xl font-display text-2xl leading-snug text-ink sm:text-4xl">
-            Vos rendez-vous pris, confirmés et rappelés —{" "}
-            <span className="italic text-forest">sans que vous ayez à y penser.</span>
+            Vos clients réservent seuls.{" "}
+            <span className="italic text-forest">Vous, vous travaillez.</span>
           </h1>
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Link
