@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { DashboardStats } from "@/lib/dashboard-stats";
 import { formatDateFr, formatTimeFr } from "@/lib/timezone";
-import { CalendarIcon, PersonIcon, ClockIcon } from "@/components/icons";
+import { CalendarIcon, PersonIcon, ClockIcon, CodeIcon } from "@/components/icons";
 import Countdown from "./Countdown";
 import SetupAccordion from "./SetupAccordion";
 
@@ -105,6 +105,13 @@ export default function HomeView({
           badge={stats.leadsToContact}
         />
         <BigButton href="/dashboard/availability" label="Disponibilités" icon={<ClockIcon className="h-7 w-7" />} />
+        <Link
+          href="/dashboard/widget"
+          className="col-span-3 flex min-h-14 items-center justify-center gap-2.5 rounded-3xl bg-forest px-4 font-extrabold text-white transition hover:bg-forest-dark"
+        >
+          <CodeIcon className="h-6 w-6" />
+          Intégrer à mon site
+        </Link>
       </nav>
     </div>
   );
