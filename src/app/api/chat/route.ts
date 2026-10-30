@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
             phone: isEmail ? undefined : booking.clientContact,
           },
           serviceId: matchedService?.id ?? null,
+          source: "assistant",
         });
 
         if (result.ok) {

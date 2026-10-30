@@ -173,6 +173,10 @@ export const appointments = pgTable(
     startAt: timestamp("start_at", { withTimezone: true }).notNull(),
     endAt: timestamp("end_at", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("PENDING"),
+    // D'où vient la réservation : "form" (page de réservation), "assistant"
+    // (prise dans la conversation), "manual" (ajoutée par l'entrepreneur).
+    // null pour les RDV créés avant ce suivi.
+    source: text("source"),
     notes: text("notes"),
     googleCalendarEventId: text("google_calendar_event_id"),
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),

@@ -71,6 +71,13 @@
       "when": 1792887388555,
       "tag": "0009_flippant_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793362079363,
+      "tag": "0010_yummy_cassandra_nova",
+      "breakpoints": true
     }
   ]
 }

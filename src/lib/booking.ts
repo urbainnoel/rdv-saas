@@ -17,6 +17,8 @@ export type CreateAppointmentInput = {
   client: { fullName: string; email?: string | null; phone?: string | null };
   serviceId?: string | null;
   notes?: string | null;
+  /** Provenance, pour les statistiques du tableau de bord. */
+  source?: "form" | "assistant" | "manual";
 };
 
 export type CreateAppointmentResult =
@@ -34,6 +36,7 @@ export async function createAppointment({
   client,
   serviceId,
   notes,
+  source,
 }: CreateAppointmentInput): Promise<CreateAppointmentResult> {
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { ok: false, status: 400, error: "Créneau invalide." };
@@ -128,6 +131,7 @@ export async function createAppointment({
       startAt,
       endAt,
       status: "CONFIRMED",
+      source: source ?? null,
       notes: notes ?? null,
     })
     .returning();
