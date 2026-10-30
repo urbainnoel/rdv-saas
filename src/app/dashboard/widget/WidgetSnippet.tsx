@@ -17,7 +17,7 @@ export default function WidgetSnippet({ snippet }: { snippet: string }) {
         <code className="block overflow-x-auto whitespace-pre text-sm text-paper">{snippet}</code>
         <button
           onClick={handleCopy}
-          className="shrink-0 rounded-lg bg-forest px-3 py-1.5 text-xs font-medium text-white transition hover:bg-forest-dark"
+          className="shrink-0 rounded-xl bg-forest px-3 py-1.5 text-xs font-bold text-white transition hover:bg-forest-dark"
         >
           {copied ? "Copié !" : "Copier"}
         </button>

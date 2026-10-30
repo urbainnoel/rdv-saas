@@ -3,8 +3,8 @@
 /*
   Identité visuelle — RDV Assistant
   Un assistant calme et fiable pour entrepreneurs indépendants.
-  Palette sobre (forêt + ambre), typographie éditoriale pour les titres,
-  typographie claire pour l'interface. Pas de bascule automatique en mode
+  Vert vif + ambre soleil, Montserrat partout (titres très gras),
+  coins arrondis généreux, carreaux d'agenda comme motif de marque. Pas de bascule automatique en mode
   sombre : on contrôle chaque couleur explicitement pour éviter les
   problèmes de contraste.
 */
@@ -17,13 +17,16 @@
   --color-surface: #ffffff;
   --color-border: #dde4da;
 
-  --color-forest: #1f4d3d;
-  --color-forest-dark: #15362b;
-  --color-forest-soft: #e4ece7;
+  /* Couleur principale : vert vif (aussi la couleur par défaut des pages
+     publiques des entrepreneurs sans couleur de marque). */
+  --color-forest: #0b7a50;
+  --color-forest-dark: #08613f;
+  --color-forest-soft: #e2f1e8;
 
-  --color-amber: #d79a2a;
-  --color-amber-dark: #b87f1e;
-  --color-amber-soft: #faecd2;
+  /* Accent : ambre « soleil » pour les actions principales. */
+  --color-amber: #f6b93b;
+  --color-amber-dark: #9a6400;
+  --color-amber-soft: #fcefd3;
 
   --color-danger: #b3261e;
   --color-danger-soft: #fbe9e8;
@@ -44,8 +47,9 @@
   --color-sun-ink: #7a4f00;
   --font-brand: var(--font-montserrat);
 
-  --font-display: var(--font-newsreader);
-  --font-sans: var(--font-inter);
+  /* Une seule famille partout : Montserrat (titres en 800, texte en 400–600). */
+  --font-display: var(--font-montserrat);
+  --font-sans: var(--font-montserrat);
 }
 
 :root {

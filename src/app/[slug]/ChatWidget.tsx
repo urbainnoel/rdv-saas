@@ -92,12 +92,12 @@ export default function ChatWidget({
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Écrivez votre message…"
-          className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-forest"
+          className="flex-1 rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-forest"
         />
         <button
           type="submit"
           disabled={loading || !input.trim()}
-          className="rounded-lg bg-forest px-3 py-2 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="rounded-xl bg-forest px-3 py-2 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           Envoyer
         </button>

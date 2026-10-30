@@ -8,7 +8,7 @@ export default function GoogleButton({ intent = null }: { intent?: SignupIntent 
       {/* Navigation complète voulue : la route redirige vers Google. */}
       <a
         href={intent ? `/api/auth/google?intent=${intent}` : "/api/auth/google"}
-        className="flex w-full items-center justify-center rounded-lg border border-border bg-surface px-4 py-2.5 font-medium text-ink transition hover:border-forest hover:text-forest"
+        className="flex w-full items-center justify-center rounded-xl border-2 border-border bg-surface px-4 py-3 font-bold text-ink transition hover:border-forest hover:text-forest"
       >
         Continuer avec Google
       </a>

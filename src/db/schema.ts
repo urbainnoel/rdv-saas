@@ -35,7 +35,7 @@ export const entrepreneurs = pgTable(
     businessName: text("business_name").notNull(),
     slug: text("slug").notNull(), // utilisé dans l'URL publique : tonapp.com/{slug}
     timezone: text("timezone").notNull().default("Africa/Conakry"),
-    // Couleur de marque de l'entrepreneur (hex, ex: "#1f4d3d"), appliquée à sa
+    // Couleur de marque de l'entrepreneur (hex, ex: "#0b7a50"), appliquée à sa
     // page publique, à l'embed et à la bulle du widget. null = couleur par
     // défaut de l'app (vert forêt).
     brandColor: text("brand_color"),

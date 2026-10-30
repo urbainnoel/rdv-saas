@@ -15,7 +15,7 @@ export default async function LeadsPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Prospects</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Prospects</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Les personnes intéressées qui ont laissé leur contact à ton assistant sans réserver.
         Recontacte-les : un prospect qui réserve passe tout seul en « Converti ».

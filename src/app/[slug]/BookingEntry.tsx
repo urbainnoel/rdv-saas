@@ -30,7 +30,7 @@ export default function BookingEntry({
               className="h-10 w-10 shrink-0 rounded-lg border border-border object-contain"
             />
           )}
-          <p className="font-display text-2xl italic text-ink">{businessName}</p>
+          <p className="font-display font-extrabold tracking-tight text-2xl text-ink">{businessName}</p>
         </div>
         <p className="mt-1 text-ink-soft">Comment préférez-vous faire ?</p>
 

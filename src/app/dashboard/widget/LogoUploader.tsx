@@ -73,7 +73,7 @@ export default function LogoUploader({ initialLogoUrl }: { initialLogoUrl: strin
   }
 
   return (
-    <div className="mt-6 rounded-xl border border-border bg-surface p-4">
+    <div className="mt-6 rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-medium text-ink">Logo de l&apos;entreprise</h2>
       <p className="mt-1 text-sm text-ink-soft">
         Affiché sur ta page de réservation, dans le widget et sur la bulle de chat, à la place du nom seul.
@@ -94,7 +94,7 @@ export default function LogoUploader({ initialLogoUrl }: { initialLogoUrl: strin
             <button
               onClick={() => inputRef.current?.click()}
               disabled={uploading}
-              className="rounded-lg bg-forest px-3 py-1.5 text-xs font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+              className="rounded-xl bg-forest px-3 py-1.5 text-xs font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
             >
               {uploading ? "Envoi…" : logoUrl ? "Changer" : "Choisir une image"}
             </button>

@@ -95,7 +95,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-forest text-white">
           <CheckIcon className="h-5 w-5" />
         </div>
-        <p className="font-display text-xl italic text-ink">Rendez-vous confirmé</p>
+        <p className="font-display font-extrabold tracking-tight text-xl text-ink">Rendez-vous confirmé</p>
         <p className="text-ink-soft">
           Le {d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: timezone })} à{" "}
           {d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: timezone })}
@@ -109,7 +109,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">{businessName}</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">{businessName}</h1>
       <p className="mt-1 text-sm text-ink-soft">
         {!serviceStepDone ? "Que souhaitez-vous réserver ?" : "Choisissez un créneau disponible"}
       </p>
@@ -121,7 +121,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
             <button
               key={s.id}
               onClick={() => setSelectedServiceId(s.id)}
-              className="flex w-full items-start justify-between rounded-xl border border-border bg-surface p-4 text-left transition hover:border-forest"
+              className="flex w-full items-start justify-between rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-forest"
             >
               <div>
                 <p className="font-medium text-ink">{s.name}</p>
@@ -167,7 +167,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                         setSelectedDay(day);
                         setSelectedSlot(null);
                       }}
-                      className={`shrink-0 rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                      className={`shrink-0 rounded-xl border px-4 py-2.5 text-sm font-semibold transition ${
                         isSelected
                           ? "border-forest bg-forest text-white"
                           : "border-border bg-surface text-ink-soft hover:border-forest"
@@ -201,7 +201,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                       <button
                         key={slot.startAt}
                         onClick={() => setSelectedSlot(slot)}
-                        className={`rounded-lg border px-3 py-2 text-sm font-medium transition ${
+                        className={`rounded-xl border px-3 py-2.5 text-sm font-semibold transition ${
                           isSelected
                             ? "border-forest bg-forest text-white"
                             : "border-border bg-surface text-ink-soft hover:border-forest"
@@ -225,7 +225,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
                       placeholder="Ex: Fatoumata Diallo"
                     />
                   </div>
@@ -237,7 +237,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
                       placeholder="+224 6XX XX XX XX"
                     />
                   </div>
@@ -249,7 +249,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
                       placeholder="vous@exemple.com"
                     />
                   </div>
@@ -261,7 +261,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={2}
-                      className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+                      className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
                       placeholder="Ex: première séance, j'ai une douleur au genou droit"
                     />
                     <p className="mt-1 text-xs text-ink-faint">
@@ -278,7 +278,7 @@ export default function BookingWidget({ slug }: { slug: string }) {
                   <button
                     type="submit"
                     disabled={submitting || !fullName || (!email && !phone)}
-                    className="w-full rounded-lg bg-amber px-4 py-2.5 font-medium text-ink transition hover:bg-amber-dark hover:text-white disabled:opacity-50"
+                    className="w-full rounded-xl bg-amber px-4 py-3 font-bold text-ink transition hover:bg-amber-dark hover:text-white disabled:opacity-50"
                   >
                     {submitting ? "Réservation en cours…" : "Confirmer le rendez-vous"}
                   </button>

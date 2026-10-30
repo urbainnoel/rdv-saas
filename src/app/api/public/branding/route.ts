@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     businessName: entrepreneur.businessName,
-    brandColor: entrepreneur.brandColor ?? "#1f4d3d",
+    brandColor: entrepreneur.brandColor ?? "#0b7a50",
     logoUrl: entrepreneur.logoUrl ?? null,
   });
 }

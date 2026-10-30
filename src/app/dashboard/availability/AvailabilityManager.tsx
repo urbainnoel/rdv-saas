@@ -73,21 +73,21 @@ export default function AvailabilityManager() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Disponibilités</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Disponibilités</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Définis tes créneaux récurrents, semaine après semaine.
       </p>
 
       <form
         onSubmit={handleAdd}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-4"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-surface p-4"
       >
         <div>
           <label className="block text-xs font-medium text-ink-soft">Jour</label>
           <select
             value={dayOfWeek}
             onChange={(e) => setDayOfWeek(Number(e.target.value))}
-            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           >
             {DAYS.map((d, i) => (
               <option key={i} value={i}>
@@ -102,7 +102,7 @@ export default function AvailabilityManager() {
             type="time"
             value={startTime}
             onChange={(e) => setStartTime(e.target.value)}
-            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
@@ -111,7 +111,7 @@ export default function AvailabilityManager() {
             type="time"
             value={endTime}
             onChange={(e) => setEndTime(e.target.value)}
-            className="mt-1 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
@@ -124,13 +124,13 @@ export default function AvailabilityManager() {
             step={5}
             value={slotDuration}
             onChange={(e) => setSlotDuration(Number(e.target.value))}
-            className="mt-1 w-24 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 w-24 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           Ajouter
         </button>
@@ -142,7 +142,7 @@ export default function AvailabilityManager() {
       {!loading && (
         <div className="mt-6 space-y-3">
           {rulesByDay.map(({ day, rules }) => (
-            <div key={day} className="rounded-xl border border-border bg-surface p-4">
+            <div key={day} className="rounded-2xl border border-border bg-surface p-4">
               <p className="font-medium text-ink">{DAYS[day]}</p>
               {rules.length === 0 ? (
                 <p className="mt-1 text-sm text-ink-faint">Fermé</p>

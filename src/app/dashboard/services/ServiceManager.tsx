@@ -64,7 +64,7 @@ export default function ServiceManager() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Services</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Services</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Définis les services que tes clients peuvent choisir au moment de
         réserver (ex: &quot;Consultation 30 min&quot;, &quot;Suivi mensuel&quot;). Si tu n&apos;ajoutes
@@ -73,7 +73,7 @@ export default function ServiceManager() {
 
       <form
         onSubmit={handleAdd}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-xl border border-border bg-surface p-4"
+        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-surface p-4"
       >
         <div className="flex-1 min-w-[160px]">
           <label className="block text-xs font-medium text-ink-soft">Nom du service</label>
@@ -83,7 +83,7 @@ export default function ServiceManager() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Ex: Consultation 30 min"
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 w-full rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <div className="flex-1 min-w-[160px]">
@@ -95,7 +95,7 @@ export default function ServiceManager() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Ex: Bilan initial + plan d'action"
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 w-full rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
@@ -107,13 +107,13 @@ export default function ServiceManager() {
             value={durationMinutes}
             onChange={(e) => setDurationMinutes(e.target.value)}
             placeholder="30"
-            className="mt-1 w-24 rounded-lg border border-border bg-surface px-2 py-1.5 text-sm text-ink focus:border-forest"
+            className="mt-1 w-24 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
           />
         </div>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           Ajouter
         </button>
@@ -133,7 +133,7 @@ export default function ServiceManager() {
             services.map((s) => (
               <div
                 key={s.id}
-                className="flex items-start justify-between rounded-xl border border-border bg-surface p-4"
+                className="flex items-start justify-between rounded-2xl border border-border bg-surface p-4"
               >
                 <div>
                   <p className="font-medium text-ink">

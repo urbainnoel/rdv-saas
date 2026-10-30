@@ -32,7 +32,7 @@ export default async function DashboardPage() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Agenda</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Agenda</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Lien de réservation à partager :{" "}
         <span className="rounded bg-forest-soft px-1.5 py-0.5 font-mono text-xs text-forest">
@@ -41,7 +41,7 @@ export default async function DashboardPage() {
       </p>
 
       {upcoming.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface px-6 py-16 text-center">
+        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
           <CalendarIcon className="h-8 w-8 text-ink-faint" />
           <p className="text-ink-soft">Aucun rendez-vous à venir.</p>
           <p className="max-w-sm text-sm text-ink-faint">
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           </p>
         </div>
       ) : (
-        <div className="mt-6 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="mt-6 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
           {upcoming.map(({ appointment, client, service }) => {
             const start = new Date(appointment.startAt);
             return (

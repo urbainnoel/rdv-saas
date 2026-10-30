@@ -54,7 +54,7 @@ export default function SignupForm({
         <div className="mb-8">
           <BrandMark />
         </div>
-        <h1 className="font-display text-2xl italic text-ink">Vérifie ta boîte mail</h1>
+        <h1 className="font-display font-extrabold tracking-tight text-3xl text-ink">Vérifie ta boîte mail</h1>
         <p className="mt-3 text-sm leading-relaxed text-ink-soft">
           Nous avons envoyé un lien de confirmation à{" "}
           <span className="font-medium text-ink">{pendingEmail}</span>. Ouvre-le pour activer ton
@@ -71,7 +71,7 @@ export default function SignupForm({
         <BrandMark />
       </div>
 
-      <h1 className="font-display text-2xl italic text-ink">Créer ton compte</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-3xl text-ink">Créer ton compte</h1>
       <p className="mt-1 text-sm text-ink-soft">
         {intent === "chatbot"
           ? "Ensuite, tu copies une ligne de code sur ton site et ton assistant est en place."
@@ -106,7 +106,7 @@ export default function SignupForm({
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-forest px-4 py-2.5 font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="w-full rounded-xl bg-forest px-4 py-3 font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           {loading ? "Création…" : "Créer mon compte"}
         </button>
@@ -147,7 +147,7 @@ function Field({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         minLength={minLength}
-        className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+        className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
       />
     </div>
   );

@@ -31,7 +31,7 @@
   var origin = new URL(currentScript.src).origin;
   var open = false;
 
-  var FOREST = "#1f4d3d"; // couleur par défaut, remplacée dès que la couleur de marque est connue
+  var FOREST = "#0b7a50"; // couleur par défaut, remplacée dès que la couleur de marque est connue
 
   var bubble = document.createElement("button");
   bubble.setAttribute("aria-label", "Ouvrir l'assistant");

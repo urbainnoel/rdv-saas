@@ -87,14 +87,14 @@ export default function KnowledgeBaseManager() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Bibliothèque de l&apos;assistant</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Bibliothèque de l&apos;assistant</h1>
       <p className="mt-1 max-w-2xl text-sm text-ink-soft">
         Tout ce que tu ajoutes ici nourrit directement ton assistant : plus tu lui donnes d&apos;informations
         et de consignes, mieux il comprend tes clients et répond à leur place. S&apos;il ne trouve pas la
         réponse, il te transmet la question plutôt que d&apos;inventer.
       </p>
 
-      <div className="mt-6 flex gap-1 rounded-xl border border-border bg-surface p-1">
+      <div className="mt-6 flex gap-1 rounded-2xl border border-border bg-surface p-1">
         {TABS.map((t) => (
           <button
             key={t.key}
@@ -112,7 +112,7 @@ export default function KnowledgeBaseManager() {
 
       <form
         onSubmit={handleAdd}
-        className="mt-4 space-y-3 rounded-xl border border-border bg-surface p-4"
+        className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4"
       >
         <div>
           <label className="block text-xs font-medium text-ink-soft">{tab.titleLabel}</label>
@@ -122,7 +122,7 @@ export default function KnowledgeBaseManager() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder={tab.titlePlaceholder}
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
+            className="mt-1 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-forest"
           />
         </div>
         <div>
@@ -133,7 +133,7 @@ export default function KnowledgeBaseManager() {
             onChange={(e) => setAnswer(e.target.value)}
             rows={3}
             placeholder={tab.contentPlaceholder}
-            className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
+            className="mt-1 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-forest"
           />
         </div>
         {error && (
@@ -142,7 +142,7 @@ export default function KnowledgeBaseManager() {
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           Ajouter
         </button>
@@ -158,7 +158,7 @@ export default function KnowledgeBaseManager() {
             filteredEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="flex items-start justify-between rounded-xl border border-border bg-surface p-4"
+                className="flex items-start justify-between rounded-2xl border border-border bg-surface p-4"
               >
                 <div>
                   <p className="font-medium text-ink">{entry.question}</p>

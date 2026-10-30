@@ -10,7 +10,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="font-display text-2xl italic text-ink">Paramètres</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Paramètres</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Choisis où tu veux recevoir les notifications liées à tes rendez-vous (confirmations, rappels,
         nouveaux prospects, questions sans réponse de l&apos;assistant).
@@ -18,7 +18,7 @@ export default async function SettingsPage() {
 
       <NotificationEmailForm accountEmail={entrepreneur.email} initialValue={entrepreneur.notificationEmail} />
 
-      <h2 className="mt-10 font-display text-lg italic text-ink">Fuseau horaire</h2>
+      <h2 className="mt-10 font-display font-extrabold tracking-tight text-lg text-ink">Fuseau horaire</h2>
       <p className="mt-1 text-sm text-ink-soft">
         Tes disponibilités, tes créneaux et les heures des rappels sont exprimés dans ce fuseau.
       </p>

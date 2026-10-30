@@ -51,7 +51,7 @@ export default function Sidebar({
       {/* Barre du haut, visible uniquement sur mobile/tablette : le menu
           latéral complet est caché derrière, ouvert via le bouton burger. */}
       <div className="flex items-center justify-between bg-forest px-4 py-3 text-white sm:hidden">
-        <p className="font-display italic leading-tight">{businessName}</p>
+        <p className="font-display font-extrabold tracking-tight leading-tight">{businessName}</p>
         <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu" className="p-1">
           <MenuIcon className="h-6 w-6" />
         </button>
@@ -72,7 +72,7 @@ export default function Sidebar({
         }`}
       >
         <div className="flex items-center justify-between px-5 py-6">
-          <p className="font-display text-lg italic leading-tight">{businessName}</p>
+          <p className="font-display font-extrabold tracking-tight text-lg leading-tight">{businessName}</p>
           <button onClick={() => setOpen(false)} aria-label="Fermer le menu" className="p-1 text-xl leading-none sm:hidden">
             ×
           </button>
@@ -86,7 +86,7 @@ export default function Sidebar({
                 key={href}
                 href={href}
                 onClick={() => setOpen(false)}
-                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+                className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
                   isActive
                     ? "bg-white/15 font-medium text-white"
                     : "text-white/75 hover:bg-white/10 hover:text-white"
@@ -102,7 +102,7 @@ export default function Sidebar({
             href={`/${slug}`}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-white/75 transition hover:bg-white/10 hover:text-white"
           >
             <LinkIcon className="h-[18px] w-[18px]" />
             Page publique

@@ -37,7 +37,7 @@ export default function NotificationEmailForm({
   }
 
   return (
-    <form onSubmit={handleSave} className="mt-4 space-y-3 rounded-xl border border-border bg-surface p-4">
+    <form onSubmit={handleSave} className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
       <div>
         <label className="block text-xs font-medium text-ink-soft">Email de notification</label>
         <input
@@ -45,7 +45,7 @@ export default function NotificationEmailForm({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           placeholder={accountEmail}
-          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-forest"
+          className="mt-1 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-forest"
         />
         <p className="mt-1 text-xs text-ink-faint">
           Laisse vide pour utiliser ton email de connexion ({accountEmail}).
@@ -55,7 +55,7 @@ export default function NotificationEmailForm({
       <button
         type="submit"
         disabled={saving}
-        className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+        className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
       >
         {saving ? "Enregistrement…" : saved ? "Enregistré" : "Enregistrer"}
       </button>

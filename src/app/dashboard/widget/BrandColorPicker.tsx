@@ -3,7 +3,8 @@
 import { useState } from "react";
 
 const PRESETS = [
-  { label: "Vert forêt (défaut)", value: "#1f4d3d" },
+  { label: "Vert (défaut)", value: "#0b7a50" },
+  { label: "Vert forêt", value: "#1f4d3d" },
   { label: "Bleu nuit", value: "#1e3a5f" },
   { label: "Bordeaux", value: "#7a2e3b" },
   { label: "Terracotta", value: "#c05f3c" },
@@ -11,7 +12,7 @@ const PRESETS = [
 ];
 
 export default function BrandColorPicker({ initialColor }: { initialColor: string | null }) {
-  const [color, setColor] = useState(initialColor ?? "#1f4d3d");
+  const [color, setColor] = useState(initialColor ?? "#0b7a50");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +29,7 @@ export default function BrandColorPicker({ initialColor }: { initialColor: strin
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
-      setColor(value ?? "#1f4d3d");
+      setColor(value ?? "#0b7a50");
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
@@ -39,7 +40,7 @@ export default function BrandColorPicker({ initialColor }: { initialColor: strin
   }
 
   return (
-    <div className="mt-8 rounded-xl border border-border bg-surface p-4">
+    <div className="mt-8 rounded-2xl border border-border bg-surface p-4">
       <h2 className="font-medium text-ink">Couleur de ta marque</h2>
       <p className="mt-1 text-sm text-ink-soft">
         Choisis une couleur pour que ta page de réservation, le widget et la bulle de chat correspondent à

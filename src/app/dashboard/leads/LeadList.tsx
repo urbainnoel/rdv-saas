@@ -73,7 +73,7 @@ export default function LeadList({
 
   if (leads.length === 0) {
     return (
-      <div className="mt-8 flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-surface px-6 py-16 text-center">
+      <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
         <MessageIcon className="h-8 w-8 text-ink-faint" />
         <p className="text-ink-soft">Aucun prospect pour l&apos;instant.</p>
         <p className="max-w-sm text-sm text-ink-faint">
@@ -96,11 +96,11 @@ export default function LeadList({
       </div>
 
       {visible.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-border bg-surface px-6 py-10 text-center text-sm text-ink-soft">
+        <p className="mt-6 rounded-2xl border border-dashed border-border bg-surface px-6 py-10 text-center text-sm text-ink-soft">
           Tous tes prospects ont été recontactés.
         </p>
       ) : (
-        <div className="mt-4 divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
+        <div className="mt-4 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
           {visible.map((lead) => {
             const firstName = lead.name.split(" ")[0];
             const wa = whatsappNumber(lead.contact, defaultCountryCode);

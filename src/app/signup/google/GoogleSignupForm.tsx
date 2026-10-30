@@ -34,7 +34,7 @@ export default function GoogleSignupForm({ email }: { email: string }) {
       <div className="mb-8">
         <BrandMark />
       </div>
-      <h1 className="font-display text-2xl italic text-ink">Dernière étape</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-3xl text-ink">Dernière étape</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Connecté avec <span className="font-medium text-ink">{email}</span>. Comment s&apos;appelle ton
         activité ?
@@ -50,7 +50,7 @@ export default function GoogleSignupForm({ email }: { email: string }) {
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             placeholder="Ex: Fatou Coach Sportif"
-            className="mt-1.5 w-full rounded-lg border border-border bg-surface px-3 py-2 text-ink placeholder:text-ink-faint focus:border-forest"
+            className="mt-1.5 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-ink placeholder:text-ink-faint focus:border-forest"
           />
           <p className="mt-1.5 text-xs text-ink-faint">
             Il apparaît sur ta page de réservation et dans ton lien public.
@@ -62,7 +62,7 @@ export default function GoogleSignupForm({ email }: { email: string }) {
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-lg bg-forest px-4 py-2.5 font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+          className="w-full rounded-xl bg-forest px-4 py-3 font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
         >
           {loading ? "Création…" : "Créer mon compte"}
         </button>

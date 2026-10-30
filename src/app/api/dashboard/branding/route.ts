@@ -19,7 +19,7 @@ export async function PATCH(req: NextRequest) {
   if (body && "brandColor" in body) {
     const { brandColor } = body;
     if (brandColor !== null && !isValidHexColor(brandColor ?? "")) {
-      return NextResponse.json({ error: "Couleur invalide (format attendu : #1f4d3d)." }, { status: 400 });
+      return NextResponse.json({ error: "Couleur invalide (format attendu : #0b7a50)." }, { status: 400 });
     }
     updates.brandColor = brandColor ?? null;
   }

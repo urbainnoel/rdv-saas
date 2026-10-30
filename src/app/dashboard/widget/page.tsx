@@ -15,7 +15,7 @@ export default async function WidgetPage() {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="font-display text-2xl italic text-ink">Intégrer sur mon site</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Intégrer sur mon site</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Colle ce code juste avant la balise <code className="rounded bg-surface px-1">&lt;/body&gt;</code> de
         ton site existant. Une bulle de chat apparaîtra automatiquement en bas à droite : tes visiteurs

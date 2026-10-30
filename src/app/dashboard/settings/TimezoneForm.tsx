@@ -37,13 +37,13 @@ export default function TimezoneForm({ initialValue }: { initialValue: string })
   }
 
   return (
-    <form onSubmit={handleSave} className="mt-4 space-y-3 rounded-xl border border-border bg-surface p-4">
+    <form onSubmit={handleSave} className="mt-4 space-y-3 rounded-2xl border border-border bg-surface p-4">
       <div>
         <label className="block text-xs font-medium text-ink-soft">Fuseau horaire</label>
         <select
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="mt-1 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
+          className="mt-1 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-forest"
         >
           {options.map((t) => (
             <option key={t.value} value={t.value}>
@@ -57,7 +57,7 @@ export default function TimezoneForm({ initialValue }: { initialValue: string })
       <button
         type="submit"
         disabled={saving}
-        className="rounded-lg bg-forest px-4 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-50"
+        className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
       >
         {saving ? "Enregistrement…" : saved ? "Enregistré" : "Enregistrer"}
       </button>

@@ -52,7 +52,7 @@ export default function TemplateEditor() {
 
   return (
     <div>
-      <h1 className="font-display text-2xl italic text-ink">Messages</h1>
+      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Messages</h1>
       <p className="mt-1 text-sm text-ink-soft">
         Personnalise les messages envoyés automatiquement à tes clients. Variables
         disponibles :{" "}
@@ -101,7 +101,7 @@ function TemplateCard({
   const dirty = content !== template.content || enabled !== template.enabled;
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4">
+    <div className="rounded-2xl border border-border bg-surface p-4">
       <div className="flex items-center justify-between">
         <p className="font-medium text-ink">{label}</p>
         <label className="flex items-center gap-2 text-sm text-ink-soft">
@@ -118,12 +118,12 @@ function TemplateCard({
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={3}
-        className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink focus:border-forest"
+        className="mt-2 w-full rounded-2xl border border-border bg-surface px-3.5 py-2.5 text-sm text-ink focus:border-forest"
       />
       <button
         onClick={() => onSave(content, enabled)}
         disabled={!dirty || saving}
-        className="mt-2 rounded-lg bg-forest px-3 py-1.5 text-sm font-medium text-white transition hover:bg-forest-dark disabled:opacity-40"
+        className="mt-2 rounded-xl bg-forest px-3 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-40"
       >
         {saving ? "Enregistrement…" : "Enregistrer"}
       </button>
