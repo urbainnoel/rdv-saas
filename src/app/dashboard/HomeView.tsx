@@ -4,6 +4,7 @@ import { formatDateFr, formatTimeFr } from "@/lib/timezone";
 import { CalendarIcon, PersonIcon, ClockIcon, CheckIcon } from "@/components/icons";
 import Countdown from "./Countdown";
 import ShareLink from "./ShareLink";
+import QuickAvailability from "@/components/QuickAvailability";
 
 // Affichage de l'écran d'accueil (sans accès à la base : les chiffres
 // arrivent déjà calculés), pour pouvoir le tester avec des données d'exemple.
@@ -34,13 +35,29 @@ export default function HomeView({
           <h2 className="text-lg font-extrabold text-ink">Mise en route</h2>
           <p className="mt-1 text-sm text-ink-soft">Trois étapes pour recevoir tes premières réservations.</p>
           <ol className="mt-4 flex flex-col gap-3">
-            <SetupStep
-              done={stats.hasAvailability}
-              title="Indique tes horaires"
-              text="Sans horaires, ton lien n'affiche aucun créneau."
-              href="/dashboard/availability"
-              cta="Mes disponibilités"
-            />
+            {stats.hasAvailability ? (
+              <SetupStep
+                done
+                title="Indique tes horaires"
+                text=""
+                href="/dashboard/availability"
+                cta="Mes disponibilités"
+              />
+            ) : (
+              /* Première étape faite sur place, sans quitter l'accueil. */
+              <li className="flex flex-col gap-4 rounded-2xl bg-paper p-4">
+                <div className="flex items-start gap-3">
+                  <StepDot done={false} />
+                  <div>
+                    <p className="font-bold text-ink">Indique tes horaires</p>
+                    <p className="text-sm text-ink-soft">Sans horaires, ton lien n&apos;affiche aucun créneau.</p>
+                  </div>
+                </div>
+                <div className="-mx-1 rounded-2xl bg-surface p-3 sm:mx-0 sm:p-4">
+                  <QuickAvailability />
+                </div>
+              </li>
+            )}
             <SetupStep
               done={stats.hasKnowledge}
               title="Présente ton activité à l'assistant"

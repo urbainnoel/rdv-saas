@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import QuickAvailability from "@/components/QuickAvailability";
 
 type Rule = {
   id: string;
@@ -10,158 +12,104 @@ type Rule = {
   slotDurationMinutes: number;
 };
 
-const DAYS = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+// Semaine à la française : lundi en premier.
+const WEEK = [
+  { value: 1, label: "Lundi" },
+  { value: 2, label: "Mardi" },
+  { value: 3, label: "Mercredi" },
+  { value: 4, label: "Jeudi" },
+  { value: 5, label: "Vendredi" },
+  { value: 6, label: "Samedi" },
+  { value: 0, label: "Dimanche" },
+];
 
-export default function AvailabilityManager() {
-  const [rules, setRules] = useState<Rule[]>([]);
-  const [loading, setLoading] = useState(true);
+function formatDuration(m: number) {
+  if (m < 60) return `${m} min`;
+  const h = Math.floor(m / 60);
+  return m % 60 === 0 ? `${h} h` : `${h} h ${m % 60}`;
+}
 
-  const [dayOfWeek, setDayOfWeek] = useState(1);
-  const [startTime, setStartTime] = useState("09:00");
-  const [endTime, setEndTime] = useState("17:00");
-  const [slotDuration, setSlotDuration] = useState(30);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function load() {
-    const res = await fetch("/api/dashboard/availability");
-    const data = await res.json();
-    setRules(data.rules ?? []);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/dashboard/availability", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          dayOfWeek,
-          startTime,
-          endTime,
-          slotDurationMinutes: slotDuration,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
-      await load();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur.");
-    } finally {
-      setSubmitting(false);
-    }
-  }
+export default function AvailabilityManager({ rules }: { rules: Rule[] }) {
+  const router = useRouter();
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [editing, setEditing] = useState(rules.length === 0);
 
   async function handleDelete(id: string) {
-    await fetch(`/api/dashboard/availability/${id}`, { method: "DELETE" });
-    await load();
+    setDeleting(id);
+    await fetch(`/api/dashboard/availability/${id}`, { method: "DELETE" }).catch(() => null);
+    setDeleting(null);
+    router.refresh();
   }
 
-  const rulesByDay = Array.from({ length: 7 }, (_, d) => ({
-    day: d,
-    rules: rules
-      .filter((r) => r.dayOfWeek === d)
-      .sort((a, b) => a.startTime.localeCompare(b.startTime)),
-  }));
-
   return (
-    <div>
-      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Disponibilités</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        Définis tes créneaux récurrents, semaine après semaine.
-      </p>
+    <div className="mx-auto flex max-w-3xl flex-col gap-6">
+      <div>
+        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">Disponibilités</h1>
+        <p className="mt-1 text-sm text-ink-soft">Tes horaires de travail, chaque semaine.</p>
+      </div>
 
-      <form
-        onSubmit={handleAdd}
-        className="mt-6 flex flex-wrap items-end gap-3 rounded-2xl border border-border bg-surface p-4"
-      >
-        <div>
-          <label className="block text-xs font-medium text-ink-soft">Jour</label>
-          <select
-            value={dayOfWeek}
-            onChange={(e) => setDayOfWeek(Number(e.target.value))}
-            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
-          >
-            {DAYS.map((d, i) => (
-              <option key={i} value={i}>
-                {d}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-soft">Début</label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-soft">Fin</label>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            className="mt-1 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-ink-soft">
-            Durée créneau (min)
-          </label>
-          <input
-            type="number"
-            min={10}
-            step={5}
-            value={slotDuration}
-            onChange={(e) => setSlotDuration(Number(e.target.value))}
-            className="mt-1 w-24 rounded-2xl border border-border bg-surface px-2.5 py-2 text-sm text-ink focus:border-forest"
-          />
-        </div>
+      {editing ? (
+        <section className="rounded-3xl border border-border bg-surface p-5 sm:p-6">
+          <h2 className="text-lg font-extrabold text-ink">
+            {rules.length === 0 ? "Définis tes horaires" : "Modifier plusieurs jours d'un coup"}
+          </h2>
+          {rules.length > 0 && (
+            <p className="mt-1 text-sm text-ink-soft">
+              Les jours choisis prennent ces nouveaux horaires ; les autres ne changent pas.
+            </p>
+          )}
+          <div className="mt-4">
+            <QuickAvailability onSaved={() => setEditing(false)} />
+          </div>
+          {rules.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="mt-3 text-sm font-semibold text-ink-soft underline"
+            >
+              Annuler
+            </button>
+          )}
+        </section>
+      ) : (
         <button
-          type="submit"
-          disabled={submitting}
-          className="rounded-xl bg-forest px-4 py-1.5 text-sm font-bold text-white transition hover:bg-forest-dark disabled:opacity-50"
+          type="button"
+          onClick={() => setEditing(true)}
+          className="self-start rounded-xl bg-forest px-4 py-3 font-bold text-white transition hover:bg-forest-dark"
         >
-          Ajouter
+          Modifier mes horaires
         </button>
-      </form>
-      {error && (
-        <p className="mt-2 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {!loading && (
-        <div className="mt-6 space-y-3">
-          {rulesByDay.map(({ day, rules }) => (
-            <div key={day} className="rounded-2xl border border-border bg-surface p-4">
-              <p className="font-medium text-ink">{DAYS[day]}</p>
-              {rules.length === 0 ? (
-                <p className="mt-1 text-sm text-ink-faint">Fermé</p>
+      <section aria-label="Ma semaine" className="flex flex-col gap-2">
+        {WEEK.map((day) => {
+          const dayRules = rules
+            .filter((r) => r.dayOfWeek === day.value)
+            .sort((a, b) => a.startTime.localeCompare(b.startTime));
+          return (
+            <div
+              key={day.value}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-border bg-surface px-4 py-3"
+            >
+              <p className="w-24 font-bold text-ink">{day.label}</p>
+              {dayRules.length === 0 ? (
+                <p className="flex-1 text-sm text-ink-faint">Fermé</p>
               ) : (
-                <ul className="mt-2 space-y-1">
-                  {rules.map((r) => (
-                    <li
-                      key={r.id}
-                      className="flex items-center justify-between text-sm text-ink-soft"
-                    >
+                <ul className="flex flex-1 flex-col gap-1">
+                  {dayRules.map((r) => (
+                    <li key={r.id} className="flex items-center justify-between gap-3 text-sm text-ink-soft">
                       <span>
-                        {r.startTime} – {r.endTime}{" "}
-                        <span className="text-ink-faint">
-                          (créneaux de {r.slotDurationMinutes} min)
-                        </span>
+                        <span className="font-semibold text-ink">
+                          {r.startTime} – {r.endTime}
+                        </span>{" "}
+                        <span className="text-ink-faint">(séances de {formatDuration(r.slotDurationMinutes)})</span>
                       </span>
                       <button
+                        type="button"
                         onClick={() => handleDelete(r.id)}
-                        className="text-xs text-danger hover:underline"
+                        disabled={deleting === r.id}
+                        aria-label={`Supprimer ${day.label} ${r.startTime}–${r.endTime}`}
+                        className="text-xs font-semibold text-danger hover:underline disabled:opacity-50"
                       >
                         Supprimer
                       </button>
@@ -170,9 +118,9 @@ export default function AvailabilityManager() {
                 </ul>
               )}
             </div>
-          ))}
-        </div>
-      )}
+          );
+        })}
+      </section>
     </div>
   );
 }
