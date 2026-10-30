@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { GOOGLE_OAUTH_COOKIE, googleConfigured, startGoogleAuth } from "@/lib/google";
+import { parseIntent } from "@/lib/intent";
 
 export async function GET(req: NextRequest) {
   if (!googleConfigured()) {
@@ -10,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   const { url, state, verifier } = startGoogleAuth(req.nextUrl.origin);
   const res = NextResponse.redirect(url);
-  res.cookies.set(GOOGLE_OAUTH_COOKIE, JSON.stringify({ state, verifier }), {
+  res.cookies.set(GOOGLE_OAUTH_COOKIE, JSON.stringify({ state, verifier, intent: parseIntent(req.nextUrl.searchParams.get("intent")) }), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

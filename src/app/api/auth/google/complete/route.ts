@@ -7,10 +7,11 @@ import { GOOGLE_PENDING_COOKIE, type GoogleProfile } from "@/lib/google";
 import { createEntrepreneurAccount, findEntrepreneurByEmail } from "@/lib/accounts";
 import { createSession, verifyTemporaryToken } from "@/lib/session";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { destinationFor, parseIntent } from "@/lib/intent";
 
 export async function POST(req: NextRequest) {
   const token = req.cookies.get(GOOGLE_PENDING_COOKIE)?.value ?? "";
-  const profile = await verifyTemporaryToken<GoogleProfile>("google-signup", token);
+  const profile = await verifyTemporaryToken<GoogleProfile & { intent?: string | null }>("google-signup", token);
   if (!profile) {
     return NextResponse.json(
       { error: "La connexion Google a expiré. Recommence avec « Continuer avec Google »." },
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
     }));
 
   await createSession({ entrepreneurId: entrepreneur.id });
-  const res = NextResponse.json({ ok: true });
+  const res = NextResponse.json({ ok: true, redirect: destinationFor(parseIntent(profile.intent)) });
   res.cookies.delete(GOOGLE_PENDING_COOKIE);
   return res;
 }

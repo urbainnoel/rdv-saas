@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { GOOGLE_OAUTH_COOKIE, GOOGLE_PENDING_COOKIE, finishGoogleAuth } from "@/lib/google";
 import { findEntrepreneurByEmail } from "@/lib/accounts";
 import { createSession, signTemporaryToken } from "@/lib/session";
+import { destinationFor, parseIntent } from "@/lib/intent";
 
 export async function GET(req: NextRequest) {
   const fail = (reason: string) => {
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
   const params = req.nextUrl.searchParams;
   if (params.get("error")) return fail("cancelled"); // l'utilisateur a refusé chez Google
 
-  let saved: { state?: string; verifier?: string } = {};
+  let saved: { state?: string; verifier?: string; intent?: string | null } = {};
   try {
     saved = JSON.parse(req.cookies.get(GOOGLE_OAUTH_COOKIE)?.value ?? "{}");
   } catch {}
@@ -58,13 +59,17 @@ export async function GET(req: NextRequest) {
 
   if (entrepreneur) {
     await createSession({ entrepreneurId: entrepreneur.id });
-    const res = NextResponse.redirect(new URL("/dashboard", req.url));
+    const res = NextResponse.redirect(new URL(destinationFor(parseIntent(saved.intent)), req.url));
     res.cookies.delete({ name: GOOGLE_OAUTH_COOKIE, path: "/api/auth/google" });
     return res;
   }
 
   // 3. Nouveau compte : il ne manque que le nom de l'activité.
-  const pending = await signTemporaryToken("google-signup", profile, "30m");
+  const pending = await signTemporaryToken(
+    "google-signup",
+    { ...profile, intent: parseIntent(saved.intent) },
+    "30m"
+  );
   const res = NextResponse.redirect(new URL("/signup/google", req.url));
   res.cookies.delete({ name: GOOGLE_OAUTH_COOKIE, path: "/api/auth/google" });
   res.cookies.set(GOOGLE_PENDING_COOKIE, pending, {

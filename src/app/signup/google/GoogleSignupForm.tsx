@@ -25,7 +25,7 @@ export default function GoogleSignupForm({ email }: { email: string }) {
       setLoading(false);
       return;
     }
-    router.push("/dashboard");
+    router.push(typeof data?.redirect === "string" ? data.redirect : "/dashboard");
     router.refresh();
   }
 

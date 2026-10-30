@@ -1,5 +1,6 @@
 import { googleConfigured } from "@/lib/google";
 import LoginForm from "./LoginForm";
+import AgendaCorner from "@/components/AgendaCorner";
 
 const MESSAGES: Record<string, string> = {
   "verification:invalid":
@@ -17,5 +18,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
       : typeof params.google === "string"
         ? `google:${params.google}`
         : "";
-  return <LoginForm initialError={MESSAGES[key] ?? null} googleEnabled={googleConfigured()} />;
+  return (
+    <>
+      <AgendaCorner className="fixed -bottom-10 -right-10 -z-10 hidden w-[260px] md:grid" />
+      <LoginForm initialError={MESSAGES[key] ?? null} googleEnabled={googleConfigured()} />
+    </>
+  );
 }

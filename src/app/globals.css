@@ -33,6 +33,17 @@
   --color-clay: #a65c38;
   --color-clay-soft: #f3e2d6;
 
+  /* Page d'accueil : vert vif, soleil (ambre clair), police Montserrat. */
+  --color-leaf: #0b7a50;
+  --color-leaf-dark: #08613f;
+  --color-leaf-soft: #e2f1e8;
+  --color-leaf-mist: #cde9da;
+  --color-sun: #f6b93b;
+  --color-sun-dark: #e5a320;
+  --color-sun-soft: #fcefd3;
+  --color-sun-ink: #7a4f00;
+  --font-brand: var(--font-montserrat);
+
   --font-display: var(--font-newsreader);
   --font-sans: var(--font-inter);
 }

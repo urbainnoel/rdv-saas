@@ -6,8 +6,15 @@ import Link from "next/link";
 import BrandMark from "@/components/BrandMark";
 import ResendVerification from "@/components/ResendVerification";
 import GoogleButton from "@/components/GoogleButton";
+import { destinationFor, type SignupIntent } from "@/lib/intent";
 
-export default function SignupForm({ googleEnabled }: { googleEnabled: boolean }) {
+export default function SignupForm({
+  googleEnabled,
+  intent,
+}: {
+  googleEnabled: boolean;
+  intent: SignupIntent | null;
+}) {
   const router = useRouter();
   const [businessName, setBusinessName] = useState("");
   const [email, setEmail] = useState("");
@@ -32,7 +39,7 @@ export default function SignupForm({ googleEnabled }: { googleEnabled: boolean }
         setPendingEmail(email);
         return;
       }
-      router.push("/dashboard");
+      router.push(destinationFor(intent));
       router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur inconnue.");
@@ -66,10 +73,14 @@ export default function SignupForm({ googleEnabled }: { googleEnabled: boolean }
 
       <h1 className="font-display text-2xl italic text-ink">Créer ton compte</h1>
       <p className="mt-1 text-sm text-ink-soft">
-        Pour gérer tes rendez-vous et rappels automatiques.
+        {intent === "chatbot"
+          ? "Ensuite, tu copies une ligne de code sur ton site et ton assistant est en place."
+          : intent === "lien"
+            ? "Ensuite, tu indiques tes horaires et ton lien de réservation est prêt à partager."
+            : "Pour gérer tes rendez-vous et rappels automatiques."}
       </p>
 
-      {googleEnabled && <GoogleButton />}
+      {googleEnabled && <GoogleButton intent={intent} />}
 
       <form onSubmit={handleSubmit} className={`${googleEnabled ? "mt-6" : "mt-8"} space-y-5`}>
         <Field
