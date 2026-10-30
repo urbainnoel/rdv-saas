@@ -16,6 +16,7 @@ import {
   MenuIcon,
   PersonIcon,
   HomeIcon,
+  ArrowLeftIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
@@ -41,6 +42,11 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const isHome = pathname === "/dashboard";
+  // Nom de la rubrique en cours, affiché dans la barre du haut sur mobile.
+  const currentSection = NAV_ITEMS.find(
+    (item) => item.href !== "/dashboard" && pathname.startsWith(item.href)
+  )?.label;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -52,9 +58,28 @@ export default function Sidebar({
     <>
       {/* Barre du haut, visible uniquement sur mobile/tablette : le menu
           latéral complet est caché derrière, ouvert via le bouton burger. */}
-      <div className="flex items-center justify-between bg-forest px-4 py-3 text-white sm:hidden">
-        <p className="font-display font-extrabold tracking-tight leading-tight">{businessName}</p>
-        <button onClick={() => setOpen(true)} aria-label="Ouvrir le menu" className="p-1">
+      <div className="sticky top-0 z-30 flex min-h-14 items-center gap-2 bg-forest px-2 py-2 text-white sm:hidden">
+        {/* Retour : sur toutes les pages sauf l'accueil, ramène à l'accueil
+            (chaque rubrique s'ouvre depuis là). */}
+        {isHome ? (
+          <span className="w-2" />
+        ) : (
+          <Link
+            href="/dashboard"
+            aria-label="Retour à l'accueil"
+            className="flex h-11 w-11 flex-none items-center justify-center rounded-xl transition hover:bg-white/10"
+          >
+            <ArrowLeftIcon className="h-6 w-6" />
+          </Link>
+        )}
+        <p className="min-w-0 flex-1 truncate font-display font-extrabold leading-tight tracking-tight">
+          {isHome ? businessName : (currentSection ?? businessName)}
+        </p>
+        <button
+          onClick={() => setOpen(true)}
+          aria-label="Ouvrir le menu"
+          className="flex h-11 w-11 flex-none items-center justify-center rounded-xl transition hover:bg-white/10"
+        >
           <MenuIcon className="h-6 w-6" />
         </button>
       </div>
