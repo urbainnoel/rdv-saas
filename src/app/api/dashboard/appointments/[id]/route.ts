@@ -1,4 +1,5 @@
-// Annuler ou reporter un rendez-vous depuis l'agenda de l'entrepreneur.
+// Annuler, reporter ou pointer la présence (venu / absent) d'un rendez-vous
+// depuis l'agenda de l'entrepreneur.
 
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
@@ -9,7 +10,9 @@ import { sendCancellationNotice, sendRescheduleNotice } from "@/lib/notification
 
 type Body =
   | { action: "cancel" }
-  | { action: "reschedule"; startAt: string; endAt: string };
+  | { action: "reschedule"; startAt: string; endAt: string }
+  | { action: "complete" }
+  | { action: "no_show" };
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -33,6 +36,29 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   if (!row) return NextResponse.json({ error: "Rendez-vous introuvable ou déjà annulé." }, { status: 404 });
   const { appointment, client } = row;
+
+  // Présence : seulement une fois le RDV commencé, et modifiable ensuite
+  // (une erreur de pointage doit pouvoir se corriger).
+  if (body?.action === "complete" || body?.action === "no_show") {
+    if (new Date(appointment.startAt).getTime() > Date.now()) {
+      return NextResponse.json(
+        { error: "Ce rendez-vous n'a pas encore commencé." },
+        { status: 400 }
+      );
+    }
+    await db
+      .update(schema.appointments)
+      .set({ status: body.action === "complete" ? "COMPLETED" : "NO_SHOW", updatedAt: new Date() })
+      .where(
+        and(eq(schema.appointments.id, appointment.id), eq(schema.appointments.entrepreneurId, entrepreneur.id))
+      );
+    return NextResponse.json({ ok: true });
+  }
+
+  // Un RDV déjà pointé appartient au passé : on ne l'annule ni ne le reporte.
+  if (appointment.status === "COMPLETED" || appointment.status === "NO_SHOW") {
+    return NextResponse.json({ error: "Ce rendez-vous est déjà passé." }, { status: 400 });
+  }
 
   if (body?.action === "cancel") {
     const [updated] = await db

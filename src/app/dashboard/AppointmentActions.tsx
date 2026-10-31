@@ -57,20 +57,20 @@ export default function AppointmentActions({
   if (mode === "confirm-cancel") {
     return (
       <div className="flex flex-col items-start gap-2 sm:items-end">
-        <p className="text-sm text-ink">Annuler le RDV de {clientName.split(" ")[0]} ?</p>
+        <p className="text-sm text-ink">Annuler le RDV de {clientName.split(" ")[0]}&nbsp;?</p>
         <div className="flex gap-2">
           <button
             type="button"
             disabled={busy}
             onClick={() => send({ action: "cancel" })}
-            className="rounded-full bg-danger px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            className="min-h-11 rounded-xl bg-danger px-4 text-sm font-bold text-white disabled:opacity-50"
           >
             {busy ? "Annulation…" : "Oui, annuler"}
           </button>
           <button
             type="button"
             onClick={() => setMode("idle")}
-            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-soft"
+            className="min-h-11 rounded-xl border-2 border-border bg-surface px-4 text-sm font-bold text-ink-soft"
           >
             Non
           </button>
@@ -143,14 +143,14 @@ export default function AppointmentActions({
       <button
         type="button"
         onClick={openReschedule}
-        className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-soft transition hover:border-forest hover:text-forest"
+        className="min-h-11 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-sm font-bold text-ink-soft transition hover:border-forest hover:text-forest sm:flex-none"
       >
         Reporter
       </button>
       <button
         type="button"
         onClick={() => setMode("confirm-cancel")}
-        className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-ink-soft transition hover:border-danger hover:text-danger"
+        className="min-h-11 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-sm font-bold text-ink-soft transition hover:border-danger hover:text-danger sm:flex-none"
       >
         Annuler
       </button>

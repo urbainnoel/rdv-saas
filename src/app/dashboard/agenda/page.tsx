@@ -1,94 +1,138 @@
 import { db, schema } from "@/db";
-import { and, eq, gte, ne, asc } from "drizzle-orm";
+import { and, asc, desc, eq, gt, gte, lt, ne, type SQL } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
-import { CalendarIcon } from "@/components/icons";
-import AppointmentActions from "../AppointmentActions";
-import { formatDateFr, formatTimeFr, safeTimeZone } from "@/lib/timezone";
+import { addDaysToKey, localDateKey, safeTimeZone } from "@/lib/timezone";
+import AgendaScreen from "./AgendaScreen";
+import { buildWeek, mondayOfKey, resolveWeekStart, weekRange, type AgendaAppointment } from "./week";
 
-export default async function AgendaPage() {
+const PAST_DAYS = 30;
+
+/** Prochaine heure pleine locale, pour préremplir le formulaire d'ajout. */
+function nextFullHour(now: Date, tz: string): { date: string; time: string } {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { timeZone: tz, hour: "2-digit", hourCycle: "h23" }).format(now)
+  );
+  const today = localDateKey(now, tz);
+  if (hour >= 23) return { date: addDaysToKey(today, 1), time: "09:00" };
+  return { date: today, time: `${String(hour + 1).padStart(2, "0")}:00` };
+}
+
+export default async function AgendaPage({ searchParams }: PageProps<"/dashboard/agenda">) {
   const entrepreneur = await getCurrentEntrepreneur();
   if (!entrepreneur) return null;
 
+  const params = await searchParams;
+  const param = (name: string) => {
+    const v = params[name];
+    return typeof v === "string" ? v : undefined;
+  };
+
   const now = new Date();
   const tz = safeTimeZone(entrepreneur.timezone);
+  const todayKey = localDateKey(now, tz);
+  const next = nextFullHour(now, tz);
 
-  const upcoming = await db
+  // Toujours filtré par entrepreneur : jamais les RDV d'un autre compte.
+  const loadAppointments = async (where: SQL | undefined, order: "asc" | "desc") => {
+    const rows = await db
+      .select({ appointment: schema.appointments, client: schema.clients, service: schema.services })
+      .from(schema.appointments)
+      .innerJoin(schema.clients, eq(schema.appointments.clientId, schema.clients.id))
+      .leftJoin(schema.services, eq(schema.appointments.serviceId, schema.services.id))
+      .where(and(eq(schema.appointments.entrepreneurId, entrepreneur.id), where))
+      .orderBy(order === "asc" ? asc(schema.appointments.startAt) : desc(schema.appointments.startAt));
+    return rows.map(
+      ({ appointment, client, service }): AgendaAppointment => ({
+        id: appointment.id,
+        startAt: new Date(appointment.startAt).toISOString(),
+        endAt: new Date(appointment.endAt).toISOString(),
+        status: appointment.status,
+        clientName: client.fullName,
+        clientContact: client.phone ?? client.email ?? null,
+        serviceName: service?.name ?? null,
+        notes: appointment.notes,
+      })
+    );
+  };
+
+  const services = await db
     .select({
-      appointment: schema.appointments,
-      client: schema.clients,
-      service: schema.services,
+      id: schema.services.id,
+      name: schema.services.name,
+      durationMinutes: schema.services.durationMinutes,
     })
-    .from(schema.appointments)
-    .innerJoin(schema.clients, eq(schema.appointments.clientId, schema.clients.id))
-    .leftJoin(schema.services, eq(schema.appointments.serviceId, schema.services.id))
-    .where(
-      and(
-        eq(schema.appointments.entrepreneurId, entrepreneur.id),
-        gte(schema.appointments.startAt, now),
-        ne(schema.appointments.status, "CANCELLED")
-      )
-    )
-    .orderBy(asc(schema.appointments.startAt));
+    .from(schema.services)
+    .where(and(eq(schema.services.entrepreneurId, entrepreneur.id), eq(schema.services.archived, false)))
+    .orderBy(asc(schema.services.name));
 
-  return (
-    <div>
-      <h1 className="font-display font-extrabold tracking-tight text-2xl text-ink">Agenda</h1>
-      <p className="mt-1 text-sm text-ink-soft">
-        Lien de réservation à partager :{" "}
-        <span className="rounded bg-forest-soft px-1.5 py-0.5 font-mono text-xs text-forest">
-          /{entrepreneur.slug}
-        </span>
-      </p>
+  const common = {
+    tz,
+    slug: entrepreneur.slug,
+    todayKey,
+    defaultDate: next.date,
+    defaultTime: next.time,
+    services,
+  };
 
-      {upcoming.length === 0 ? (
-        <div className="mt-8 flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
-          <CalendarIcon className="h-8 w-8 text-ink-faint" />
-          <p className="text-ink-soft">Aucun rendez-vous à venir.</p>
-          <p className="max-w-sm text-sm text-ink-faint">
-            Partage ton lien de réservation pour commencer à recevoir des
-            demandes de rendez-vous.
-          </p>
-        </div>
-      ) : (
-        <div className="mt-6 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-surface">
-          {upcoming.map(({ appointment, client, service }) => {
-            const start = new Date(appointment.startAt);
-            return (
-              <div
-                key={appointment.id}
-                className="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
-              >
-                <div className="min-w-0">
-                  <p className="font-medium text-ink">{client.fullName}</p>
-                  <p className="text-sm text-ink-soft">
-                    {formatDateFr(start, tz)}{" "}
-                    à {formatTimeFr(start, tz)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-ink-faint">
-                    {client.phone ?? client.email ?? "—"}
-                  </p>
-                  {service && (
-                    <p className="mt-2 inline-block rounded-full bg-amber-soft px-2.5 py-0.5 text-xs font-medium text-amber-dark">
-                      {service.name}
-                    </p>
-                  )}
-                  {appointment.notes && (
-                    <p className="mt-2 rounded-lg bg-paper px-3 py-2 text-sm text-ink-soft">
-                      « {appointment.notes} »
-                    </p>
-                  )}
-                </div>
-                <AppointmentActions
-                  appointmentId={appointment.id}
-                  slug={entrepreneur.slug}
-                  clientName={client.fullName}
-                  timezone={tz}
-                />
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+  if (param("vue") === "semaine") {
+    const mondayKey = resolveWeekStart(param("semaine"), todayKey);
+    const { start, end } = weekRange(mondayKey, tz);
+    const [appointments, absences] = await Promise.all([
+      loadAppointments(
+        and(
+          ne(schema.appointments.status, "CANCELLED"),
+          gte(schema.appointments.startAt, start),
+          lt(schema.appointments.startAt, end)
+        ),
+        "asc"
+      ),
+      db
+        .select()
+        .from(schema.blockedSlots)
+        .where(
+          and(
+            eq(schema.blockedSlots.entrepreneurId, entrepreneur.id),
+            lt(schema.blockedSlots.startAt, end),
+            gt(schema.blockedSlots.endAt, start)
+          )
+        ),
+    ]);
+    const days = buildWeek(
+      mondayKey,
+      tz,
+      todayKey,
+      appointments,
+      absences.map((b) => ({
+        id: b.id,
+        startAt: new Date(b.startAt).toISOString(),
+        endAt: new Date(b.endAt).toISOString(),
+        reason: b.reason,
+      }))
+    );
+    return (
+      <AgendaScreen
+        {...common}
+        view="semaine"
+        mondayKey={mondayKey}
+        currentMondayKey={mondayOfKey(todayKey)}
+        days={days}
+      />
+    );
+  }
+
+  if (param("onglet") === "passes") {
+    // RDV commencés depuis moins de 30 jours, du plus récent au plus ancien.
+    const since = new Date(now.getTime() - PAST_DAYS * 24 * 3600 * 1000);
+    const appointments = await loadAppointments(
+      and(lt(schema.appointments.startAt, now), gte(schema.appointments.startAt, since)),
+      "desc"
+    );
+    return <AgendaScreen {...common} view="liste" tab="passes" appointments={appointments} />;
+  }
+
+  const appointments = await loadAppointments(
+    and(gte(schema.appointments.startAt, now), ne(schema.appointments.status, "CANCELLED")),
+    "asc"
   );
+  return <AgendaScreen {...common} view="liste" tab="a-venir" appointments={appointments} />;
 }

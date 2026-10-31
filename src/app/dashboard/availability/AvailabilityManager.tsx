@@ -29,7 +29,14 @@ function formatDuration(m: number) {
   return m % 60 === 0 ? `${h} h` : `${h} h ${m % 60}`;
 }
 
-export default function AvailabilityManager({ rules }: { rules: Rule[] }) {
+export default function AvailabilityManager({
+  rules,
+  children,
+}: {
+  rules: Rule[];
+  /** Sections ajoutées sous la semaine type (ex. les absences). */
+  children?: React.ReactNode;
+}) {
   const router = useRouter();
   const [deleting, setDeleting] = useState<string | null>(null);
   const [editing, setEditing] = useState(rules.length === 0);
@@ -121,6 +128,8 @@ export default function AvailabilityManager({ rules }: { rules: Rule[] }) {
           );
         })}
       </section>
+
+      {children}
     </div>
   );
 }
