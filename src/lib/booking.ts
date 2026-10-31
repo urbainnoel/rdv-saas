@@ -2,6 +2,7 @@
 // réservation classique (/api/book) et l'assistant conversationnel
 // (/api/chat), qui peut désormais réserver directement dans la discussion.
 
+import { randomBytes } from "crypto";
 import { db, schema } from "@/db";
 import { and, eq, ne } from "drizzle-orm";
 import { sendAppointmentConfirmation } from "@/lib/notifications";
@@ -133,6 +134,9 @@ export async function createAppointment({
       status: "CONFIRMED",
       source: source ?? null,
       notes: notes ?? null,
+      // Jeton du lien /rdv/<jeton> qui permet au client d'annuler ou de
+      // reporter lui-même : 32 octets aléatoires, impossible à deviner.
+      manageToken: randomBytes(32).toString("base64url"),
     })
     .returning();
 
