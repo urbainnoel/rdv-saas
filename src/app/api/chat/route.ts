@@ -1,13 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
-import { and, eq } from "drizzle-orm";
-import { askAssistant, type ChatMessage, type SlotOption } from "@/lib/chat";
+import { and, eq, isNull, sql } from "drizzle-orm";
+import { askAssistant, pickProposedSlots, type ChatMessage, type SlotOption } from "@/lib/chat";
 import { notifyUnansweredQuestion, notifyNewLead } from "@/lib/notifications";
 import { getAvailableSlotsForRange, type Slot } from "@/lib/slots";
 import { formatDateFr, formatTimeFr, safeTimeZone } from "@/lib/timezone";
 import { createAppointment } from "@/lib/booking";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { saveLead } from "@/lib/leads";
+
+// Longueur maximale d'une question enregistrée dans « Questions » : au-delà,
+// ce n'est plus une question mais un pavé (ou un abus).
+const MAX_QUESTION_LENGTH = 1000;
+
+/**
+ * Enregistre une question sans réponse pour la rubrique « Questions » du
+ * tableau de bord. Renvoie false si la même question (à la casse et aux
+ * espaces près) attend déjà une réponse : inutile de la lister deux fois.
+ */
+async function saveUnansweredQuestion(entrepreneurId: string, rawQuestion: string): Promise<boolean> {
+  const question = rawQuestion.replace(/\s+/g, " ").trim().slice(0, MAX_QUESTION_LENGTH);
+  if (!question) return false;
+  const [existing] = await db
+    .select({ id: schema.unansweredQuestions.id })
+    .from(schema.unansweredQuestions)
+    .where(
+      and(
+        eq(schema.unansweredQuestions.entrepreneurId, entrepreneurId),
+        isNull(schema.unansweredQuestions.resolvedAt),
+        sql`lower(${schema.unansweredQuestions.question}) = lower(${question})`
+      )
+    )
+    .limit(1);
+  if (existing) return false;
+  await db.insert(schema.unansweredQuestions).values({ entrepreneurId, question });
+  return true;
+}
 
 type ChatBody = {
   slug: string;
@@ -18,6 +46,15 @@ export async function POST(req: NextRequest) {
   const body = (await req.json().catch(() => null)) as ChatBody | null;
 
   if (!body?.slug || !Array.isArray(body.messages) || body.messages.length === 0) {
+    return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
+  }
+
+  // On ne transmet au modèle que rôle + texte : l'interface garde d'autres
+  // champs (boutons de créneaux, lien de gestion) qui n'ont rien à y faire.
+  const history: ChatMessage[] = body.messages
+    .filter((m) => (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string")
+    .map((m) => ({ role: m.role, content: m.content }));
+  if (history.length === 0) {
     return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
   }
 
@@ -77,16 +114,18 @@ export async function POST(req: NextRequest) {
   }));
 
   try {
-    const { answer, forward, lead, booking, bookingExtractionFailed } = await askAssistant({
+    const { answer, forward, lead, booking, proposedSlotIndexes, bookingExtractionFailed } = await askAssistant({
       businessName: entrepreneur.businessName,
       slug: entrepreneur.slug,
       entries,
       services,
       slotOptions,
-      history: body.messages,
+      history,
     });
 
     let finalAnswer = answer;
+    // Lien de gestion (annuler / reporter) du RDV créé dans cette réponse.
+    let manageUrl: string | null = null;
 
     if (bookingExtractionFailed) {
       // Le modèle a essayé de réserver mais le nom/contact extraits ne sont
@@ -124,6 +163,12 @@ export async function POST(req: NextRequest) {
         if (result.ok) {
           const d = slot.startAt;
           finalAnswer = `C'est confirmé, ${booking.clientName.split(" ")[0]} ! Votre rendez-vous est réservé pour le ${formatDateFr(d, tz)} à ${formatTimeFr(d, tz)}. Vous recevrez une confirmation.`;
+          if (result.appointment.manageToken) {
+            // Affiché dans la discussion : le client garde ce lien même si
+            // l'email de confirmation n'arrive pas.
+            manageUrl = `${req.nextUrl.origin}/rdv/${result.appointment.manageToken}`;
+            finalAnswer += ` Pour annuler ou déplacer votre rendez-vous, gardez ce lien : ${manageUrl}`;
+          }
         } else if (result.status === 409) {
           finalAnswer = "Oups, ce créneau vient d'être pris par quelqu'un d'autre. Voulez-vous en choisir un autre ?";
         } else {
@@ -146,16 +191,26 @@ export async function POST(req: NextRequest) {
     }
 
     if (forward && !booking) {
-      const lastUserMessage = [...body.messages].reverse().find((m) => m.role === "user");
-      notifyUnansweredQuestion({
-        entrepreneur,
-        question: lastUserMessage?.content ?? "(question non identifiée)",
-      }).catch((err) => console.error("Erreur notification question non répondue:", err));
+      const lastUserMessage = [...history].reverse().find((m) => m.role === "user");
+      const question = lastUserMessage?.content ?? "(question non identifiée)";
+      // Enregistrée dans « Questions » ; l'email ne part qu'à la première
+      // occurrence, pour ne pas inonder l'entrepreneur avec la même question.
+      let isNewQuestion = true;
+      try {
+        if (lastUserMessage) isNewQuestion = await saveUnansweredQuestion(entrepreneur.id, question);
+      } catch (err) {
+        console.error("Erreur enregistrement question non répondue:", err);
+      }
+      if (isNewQuestion) {
+        notifyUnansweredQuestion({ entrepreneur, question }).catch((err) =>
+          console.error("Erreur notification question non répondue:", err)
+        );
+      }
     }
 
     if (lead) {
       // Les derniers messages du prospect servent de contexte pour la relance.
-      const context = body.messages
+      const context = history
         .filter((m) => m.role === "user")
         .slice(-3)
         .map((m) => m.content)
@@ -180,7 +235,11 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    return NextResponse.json({ answer: finalAnswer, forward: forward && !booking });
+    // Boutons de créneaux : seulement quand la réponse propose des horaires
+    // (aucune réservation tentée), et uniquement des numéros de la vraie liste.
+    const slots = booking || bookingExtractionFailed ? [] : pickProposedSlots(proposedSlotIndexes, slotOptions);
+
+    return NextResponse.json({ answer: finalAnswer, forward: forward && !booking, slots, manageUrl });
   } catch (err) {
     console.error("Erreur assistant:", err);
     return NextResponse.json(

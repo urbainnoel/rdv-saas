@@ -11,6 +11,7 @@
 // silencieux (on logue l'erreur) jusqu'à ce qu'un nom de domaine soit
 // vérifié sur resend.com/domains.
 
+import { headers } from "next/headers";
 import { schema } from "@/db";
 import { DEFAULT_MESSAGE_TEMPLATES, MessageTemplateType } from "./enums";
 import { formatDateFr, formatTimeFr, safeTimeZone } from "./timezone";
@@ -42,6 +43,24 @@ function buildVars(entrepreneur: Entrepreneur, client: Client, appointment: Appo
     heure: formatTimeFr(start, safeTimeZone(entrepreneur.timezone)),
     nom_entrepreneur: entrepreneur.businessName,
   };
+}
+
+/**
+ * Origine (https://hôte) de la requête en cours, pour construire des liens
+ * absolus dans les emails. null hors requête (ex. script, test).
+ */
+async function requestOrigin(): Promise<string | null> {
+  try {
+    const h = await headers();
+    const host = h.get("x-forwarded-host") ?? h.get("host");
+    if (!host) return null;
+    const proto =
+      h.get("x-forwarded-proto")?.split(",")[0].trim() ||
+      (/^(localhost|127\.0\.0\.1)(:|$)/.test(host) ? "http" : "https");
+    return `${proto}://${host}`;
+  } catch {
+    return null;
+  }
 }
 
 function notificationEmailFor(entrepreneur: Entrepreneur): string {
@@ -116,8 +135,13 @@ export async function sendAppointmentConfirmation({
   client: Client;
   appointment: Appointment;
 }) {
+  // Lu en premier : l'appel part en tâche de fond, mais reste rattaché à la requête.
+  const origin = await requestOrigin();
   const vars = buildVars(entrepreneur, client, appointment);
-  const message = formatMessage(DEFAULT_MESSAGE_TEMPLATES.CONFIRMATION, vars);
+  let message = formatMessage(DEFAULT_MESSAGE_TEMPLATES.CONFIRMATION, vars);
+  if (origin && appointment.manageToken) {
+    message += `\n\nPour annuler ou déplacer votre rendez-vous : ${origin}/rdv/${appointment.manageToken}`;
+  }
 
   await dispatch("email", client.email, `Rendez-vous confirmé avec ${entrepreneur.businessName}`, message);
   await dispatch("whatsapp", client.phone, "", message);
@@ -230,4 +254,45 @@ export async function sendRescheduleNotice({
   const message = `Bonjour ${vars.prenom_client}, votre rendez-vous avec ${entrepreneur.businessName} prévu le ${before} est déplacé au ${vars.date} à ${vars.heure}. À bientôt !`;
   await dispatch("email", client.email, `Rendez-vous déplacé — ${entrepreneur.businessName}`, message);
   await dispatch("whatsapp", client.phone, "", message);
+}
+
+// Le client a annulé lui-même son RDV via son lien de gestion.
+export async function notifyClientCancelled({
+  entrepreneur,
+  client,
+  appointment,
+}: {
+  entrepreneur: Entrepreneur;
+  client: Client;
+  appointment: Appointment;
+}) {
+  const vars = buildVars(entrepreneur, client, appointment);
+  await dispatch(
+    "email",
+    notificationEmailFor(entrepreneur),
+    `Rendez-vous annulé par ${client.fullName}`,
+    `${client.fullName} a annulé son rendez-vous du ${vars.date} à ${vars.heure}. Le créneau est de nouveau libre sur ta page de réservation.`
+  );
+}
+
+// Le client a déplacé lui-même son RDV via son lien de gestion.
+export async function notifyClientRescheduled({
+  entrepreneur,
+  client,
+  appointment,
+  previousStart,
+}: {
+  entrepreneur: Entrepreneur;
+  client: Client;
+  appointment: Appointment;
+  previousStart: Date;
+}) {
+  const vars = buildVars(entrepreneur, client, appointment);
+  const tz = safeTimeZone(entrepreneur.timezone);
+  await dispatch(
+    "email",
+    notificationEmailFor(entrepreneur),
+    `Rendez-vous déplacé par ${client.fullName}`,
+    `${client.fullName} a déplacé son rendez-vous du ${formatDateFr(previousStart, tz)} à ${formatTimeFr(previousStart, tz)} au ${vars.date} à ${vars.heure}. Ton agenda est à jour.`
+  );
 }

@@ -32,6 +32,9 @@ export default function BookingWidget({ slug }: { slug: string }) {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  // Lien de gestion (annuler / reporter) affiché sur l'écran de succès.
+  const [manageUrl, setManageUrl] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -78,6 +81,8 @@ export default function BookingWidget({ slug }: { slug: string }) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Erreur lors de la réservation.");
+      const token = data.appointment?.manageToken;
+      setManageUrl(typeof token === "string" ? `${window.location.origin}/rdv/${token}` : null);
       setSuccess(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Erreur inconnue.");
@@ -109,6 +114,39 @@ export default function BookingWidget({ slug }: { slug: string }) {
         <p className="text-sm text-ink-faint">
           Vous recevrez une confirmation et un rappel avant le rendez-vous.
         </p>
+        {manageUrl && (
+          // Visible ici sans dépendre de l'email : le client garde son lien
+          // pour annuler ou déplacer lui-même.
+          <div className="mt-2 w-full rounded-xl border border-border bg-surface p-4 text-left">
+            <p className="text-sm font-medium text-ink">Un empêchement&nbsp;?</p>
+            <p className="mt-0.5 text-sm text-ink-soft">
+              Gardez ce lien pour annuler ou déplacer votre rendez-vous vous-même.
+            </p>
+            <p className="mt-2 rounded-lg bg-paper px-3 py-2 text-xs text-ink-soft [overflow-wrap:anywhere]">{manageUrl}</p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+              <a
+                href={manageUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex min-h-11 flex-1 items-center justify-center rounded-xl bg-forest px-4 text-sm font-bold text-white transition hover:bg-forest-dark"
+              >
+                Gérer mon rendez-vous
+              </a>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard
+                    ?.writeText(manageUrl)
+                    .then(() => setLinkCopied(true))
+                    .catch(() => {});
+                }}
+                className="min-h-11 flex-1 rounded-xl border-2 border-border bg-surface px-4 text-sm font-bold text-ink transition hover:border-forest"
+              >
+                {linkCopied ? "Lien copié" : "Copier le lien"}
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }

@@ -186,3 +186,19 @@ export function ChevronRightIcon({ className }: IconProps) {
     </svg>
   );
 }
+
+export function QuestionIcon({ className }: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <circle cx="12" cy="12" r="8.25" stroke="currentColor" strokeWidth="1.6" />
+      <path
+        d="M9.6 9.6a2.5 2.5 0 0 1 4.85.85c0 1.7-2.45 2.2-2.45 3.8"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="16.9" r="1" fill="currentColor" />
+    </svg>
+  );
+}

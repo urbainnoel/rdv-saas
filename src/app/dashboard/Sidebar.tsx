@@ -17,6 +17,7 @@ import {
   PersonIcon,
   HomeIcon,
   ArrowLeftIcon,
+  QuestionIcon,
 } from "@/components/icons";
 import { useRouter } from "next/navigation";
 
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { href: "/dashboard", label: "Accueil", icon: HomeIcon, exact: true },
   { href: "/dashboard/agenda", label: "Agenda", icon: CalendarIcon },
   { href: "/dashboard/leads", label: "Prospects", icon: PersonIcon },
+  { href: "/dashboard/questions", label: "Questions", icon: QuestionIcon },
   { href: "/dashboard/availability", label: "Disponibilités", icon: ClockIcon },
   { href: "/dashboard/services", label: "Services", icon: TagIcon },
   { href: "/dashboard/templates", label: "Messages", icon: MessageIcon },
