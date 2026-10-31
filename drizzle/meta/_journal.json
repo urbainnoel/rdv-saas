@@ -78,6 +78,13 @@
       "when": 1793362079363,
       "tag": "0010_yummy_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793487198772,
+      "tag": "0011_opposite_zodiak",
+      "breakpoints": true
     }
   ]
 }

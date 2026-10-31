@@ -145,6 +145,8 @@ export const services = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     durationMinutes: integer("duration_minutes"),
+    // Prix affiché tel quel (« 150 000 GNF », « 45 € », « à partir de 20 000 GNF »).
+    priceLabel: text("price_label"),
     archived: boolean("archived").notNull().default(false),
     ...timestamps,
   },
@@ -179,6 +181,9 @@ export const appointments = pgTable(
     source: text("source"),
     notes: text("notes"),
     googleCalendarEventId: text("google_calendar_event_id"),
+    // Jeton aléatoire du lien que le client utilise pour annuler ou reporter
+    // lui-même son RDV (/rdv/<jeton>). null pour les RDV créés avant.
+    manageToken: text("manage_token"),
     reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true }),
     // Marqueurs posés par la tâche planifiée des rappels : chaque rappel
     // n'est envoyé qu'une fois, même si la tâche tourne plusieurs fois.
@@ -196,6 +201,7 @@ export const appointments = pgTable(
       table.startAt
     ),
     clientIdx: index("appointments_client_idx").on(table.clientId),
+    manageTokenIdx: uniqueIndex("appointments_manage_token_idx").on(table.manageToken),
   })
 );
 
@@ -292,5 +298,26 @@ export const leads = pgTable(
       table.entrepreneurId,
       table.contact
     ),
+  })
+);
+
+// ----------------------------------------------------------------------------
+// QUESTIONS SANS RÉPONSE — posées à l'assistant, qu'il n'a pas su traiter
+// ----------------------------------------------------------------------------
+// L'entrepreneur les retrouve dans l'appli et peut ajouter la réponse à la
+// bibliothèque de l'assistant. resolvedAt != null = traitée ou ignorée.
+export const unansweredQuestions = pgTable(
+  "unanswered_questions",
+  {
+    id: id(),
+    entrepreneurId: text("entrepreneur_id")
+      .notNull()
+      .references(() => entrepreneurs.id, { onDelete: "cascade" }),
+    question: text("question").notNull(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => ({
+    entrepreneurIdx: index("unanswered_questions_entrepreneur_idx").on(table.entrepreneurId),
   })
 );
