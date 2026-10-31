@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, schema } from "@/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { getCurrentEntrepreneur } from "@/lib/auth";
+import { parseAvailabilityInput } from "@/lib/availability-input";
 
 export async function GET() {
   const entrepreneur = await getCurrentEntrepreneur();
@@ -14,9 +15,6 @@ export async function GET() {
 
   return NextResponse.json({ rules });
 }
-
-const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
-const toMinutes = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3, 5));
 
 /**
  * Définit des horaires pour un ou plusieurs jours d'un coup.
@@ -31,51 +29,11 @@ export async function POST(req: NextRequest) {
   if (!entrepreneur) return NextResponse.json({ error: "Non authentifié." }, { status: 401 });
 
   const body = await req.json().catch(() => null);
-  const rawDays: unknown = body?.daysOfWeek ?? (typeof body?.dayOfWeek === "number" ? [body.dayOfWeek] : null);
-  const startTime = String(body?.startTime ?? "");
-  const endTime = String(body?.endTime ?? "");
-  const duration = Number(body?.slotDurationMinutes ?? 30);
-  const pause = body?.pause as { start?: string; end?: string } | undefined | null;
-
-  const days = Array.isArray(rawDays)
-    ? [...new Set(rawDays)].filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6)
-    : [];
-  if (days.length === 0) {
-    return NextResponse.json({ error: "Choisis au moins un jour." }, { status: 400 });
+  const parsed = parseAvailabilityInput(body);
+  if (!parsed.ok) {
+    return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-  if (!TIME_RE.test(startTime) || !TIME_RE.test(endTime)) {
-    return NextResponse.json({ error: "Horaires invalides." }, { status: 400 });
-  }
-  if (toMinutes(startTime) >= toMinutes(endTime)) {
-    return NextResponse.json({ error: "L'heure de fin doit être après l'heure de début." }, { status: 400 });
-  }
-  if (!Number.isInteger(duration) || duration < 10 || duration > 480) {
-    return NextResponse.json({ error: "Durée de séance invalide (entre 10 min et 8 h)." }, { status: 400 });
-  }
-
-  // Plages de travail : une seule, ou deux autour de la pause.
-  let ranges: [string, string][] = [[startTime, endTime]];
-  if (pause?.start || pause?.end) {
-    const ps = String(pause.start ?? "");
-    const pe = String(pause.end ?? "");
-    if (!TIME_RE.test(ps) || !TIME_RE.test(pe) || toMinutes(ps) >= toMinutes(pe)) {
-      return NextResponse.json({ error: "Horaires de pause invalides." }, { status: 400 });
-    }
-    if (toMinutes(ps) <= toMinutes(startTime) || toMinutes(pe) >= toMinutes(endTime)) {
-      return NextResponse.json({ error: "La pause doit être comprise dans la journée." }, { status: 400 });
-    }
-    ranges = [
-      [startTime, ps],
-      [pe, endTime],
-    ];
-  }
-  ranges = ranges.filter(([s, e]) => toMinutes(e) - toMinutes(s) >= duration);
-  if (ranges.length === 0) {
-    return NextResponse.json(
-      { error: "Ces horaires sont trop courts pour une seule séance de cette durée." },
-      { status: 400 }
-    );
-  }
+  const { days, duration, ranges } = parsed.value;
 
   const values = days.flatMap((dayOfWeek) =>
     ranges.map(([s, e]) => ({
