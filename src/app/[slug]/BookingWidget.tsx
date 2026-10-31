@@ -5,7 +5,13 @@ import { CheckIcon } from "@/components/icons";
 
 type Slot = { startAt: string; endAt: string };
 type SlotsByDay = Record<string, Slot[]>;
-type Service = { id: string; name: string; description: string | null; durationMinutes: number | null };
+type Service = {
+  id: string;
+  name: string;
+  description: string | null;
+  durationMinutes: number | null;
+  priceLabel: string | null;
+};
 
 export default function BookingWidget({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
@@ -121,14 +127,22 @@ export default function BookingWidget({ slug }: { slug: string }) {
             <button
               key={s.id}
               onClick={() => setSelectedServiceId(s.id)}
-              className="flex w-full items-start justify-between rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-forest"
+              className="flex w-full items-start justify-between gap-3 rounded-2xl border border-border bg-surface p-4 text-left transition hover:border-forest"
             >
-              <div>
-                <p className="font-medium text-ink">{s.name}</p>
-                {s.description && <p className="mt-0.5 text-sm text-ink-soft">{s.description}</p>}
+              <div className="min-w-0">
+                <p className="font-medium break-words text-ink">{s.name}</p>
+                {s.description && <p className="mt-0.5 text-sm break-words text-ink-soft">{s.description}</p>}
               </div>
-              {s.durationMinutes && (
-                <span className="shrink-0 text-xs text-ink-faint">{s.durationMinutes} min</span>
+              {(s.durationMinutes || s.priceLabel) && (
+                <span className="flex max-w-[45%] shrink-0 flex-col items-end gap-0.5 text-right">
+                  {s.priceLabel && (
+                    <span className="text-sm font-bold break-words text-forest">
+                      {/* Espaces insécables entre chiffres : « 150 000 » ne se coupe pas en deux lignes. */}
+                      {s.priceLabel.replace(/(\d) (?=\d)/g, "$1\u00a0")}
+                    </span>
+                  )}
+                  {s.durationMinutes && <span className="text-xs text-ink-faint">{s.durationMinutes} min</span>}
+                </span>
               )}
             </button>
           ))}
