@@ -4,6 +4,7 @@
 import { db, schema } from "@/db";
 import { eq, sql } from "drizzle-orm";
 import { DEFAULT_MESSAGE_TEMPLATES } from "./enums";
+import { RESERVED_SLUGS, SLUG_MAX, SLUG_MIN } from "./slug";
 
 type Entrepreneur = typeof schema.entrepreneurs.$inferSelect;
 
@@ -17,7 +18,12 @@ function slugify(input: string): string {
 }
 
 async function uniqueSlug(businessName: string): Promise<string> {
-  const baseSlug = slugify(businessName) || "entreprise";
+  // Mêmes règles que dans Paramètres : longueur limitée, et jamais un mot
+  // réservé par l'appli (une activité « Admin » ne doit pas prendre /admin).
+  let baseSlug = slugify(businessName).slice(0, SLUG_MAX - 4).replace(/-+$/, "");
+  if (baseSlug.length < SLUG_MIN || RESERVED_SLUGS.has(baseSlug)) {
+    baseSlug = baseSlug ? `${baseSlug}-pro` : "entreprise";
+  }
   let slug = baseSlug;
   let suffix = 1;
   while (true) {
