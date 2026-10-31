@@ -19,6 +19,12 @@ export type CreateAppointmentInput = {
   notes?: string | null;
   /** Provenance, pour les statistiques du tableau de bord. */
   source?: "form" | "assistant" | "manual";
+  /**
+   * Réservé à l'ajout manuel par l'entrepreneur (route authentifiée) : il peut
+   * placer un RDV hors de ses horaires. Passé, contact et chevauchement
+   * restent vérifiés.
+   */
+  skipAvailabilityCheck?: boolean;
 };
 
 export type CreateAppointmentResult =
@@ -37,6 +43,7 @@ export async function createAppointment({
   serviceId,
   notes,
   source,
+  skipAvailabilityCheck,
 }: CreateAppointmentInput): Promise<CreateAppointmentResult> {
   if (isNaN(startAt.getTime()) || isNaN(endAt.getTime()) || startAt >= endAt) {
     return { ok: false, status: 400, error: "Créneau invalide." };
@@ -85,7 +92,7 @@ export async function createAppointment({
   // disponibilités de l'entrepreneur (jour, horaire, durée, hors créneaux
   // bloqués). Sans ce contrôle, un appel direct à l'API pouvait réserver
   // n'importe quand, par exemple à 3 h du matin un dimanche.
-  if (!(await isFreeSlot(entrepreneur, startAt, endAt))) {
+  if (!skipAvailabilityCheck && !(await isFreeSlot(entrepreneur, startAt, endAt))) {
     return {
       ok: false,
       status: 400,
