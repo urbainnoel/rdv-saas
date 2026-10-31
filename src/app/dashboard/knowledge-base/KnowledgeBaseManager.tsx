@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-type EntryType = "faq" | "info" | "logic";
-type Entry = { id: string; type: EntryType; question: string; answer: string };
+export type EntryType = "faq" | "info" | "logic";
+export type Entry = { id: string; type: EntryType; question: string; answer: string };
 
 const TABS: { key: EntryType; label: string; help: string; titleLabel: string; contentLabel: string; titlePlaceholder: string; contentPlaceholder: string }[] = [
   {
@@ -35,25 +36,13 @@ const TABS: { key: EntryType; label: string; help: string; titleLabel: string; c
   },
 ];
 
-export default function KnowledgeBaseManager() {
-  const [entries, setEntries] = useState<Entry[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function KnowledgeBaseManager({ entries }: { entries: Entry[] }) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<EntryType>("faq");
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  async function load() {
-    const res = await fetch("/api/dashboard/knowledge-base");
-    const data = await res.json();
-    setEntries(data.entries ?? []);
-    setLoading(false);
-  }
-
-  useEffect(() => {
-    load();
-  }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -69,7 +58,7 @@ export default function KnowledgeBaseManager() {
       if (!res.ok) throw new Error(data.error);
       setQuestion("");
       setAnswer("");
-      await load();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur.");
     } finally {
@@ -79,7 +68,7 @@ export default function KnowledgeBaseManager() {
 
   async function handleDelete(id: string) {
     await fetch(`/api/dashboard/knowledge-base/${id}`, { method: "DELETE" });
-    await load();
+    router.refresh();
   }
 
   const tab = TABS.find((t) => t.key === activeTab)!;
@@ -148,33 +137,31 @@ export default function KnowledgeBaseManager() {
         </button>
       </form>
 
-      {!loading && (
-        <div className="mt-6 space-y-2">
-          {filteredEntries.length === 0 ? (
-            <p className="text-ink-soft">
-              Rien dans cette catégorie pour l&apos;instant. Ajoute ta première entrée ci-dessus.
-            </p>
-          ) : (
-            filteredEntries.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex items-start justify-between rounded-2xl border border-border bg-surface p-4"
-              >
-                <div>
-                  <p className="font-medium text-ink">{entry.question}</p>
-                  <p className="mt-1 text-sm text-ink-soft">{entry.answer}</p>
-                </div>
-                <button
-                  onClick={() => handleDelete(entry.id)}
-                  className="shrink-0 text-xs text-danger hover:underline"
-                >
-                  Supprimer
-                </button>
+      <div className="mt-6 space-y-2">
+        {filteredEntries.length === 0 ? (
+          <p className="text-ink-soft">
+            Rien dans cette catégorie pour l&apos;instant. Ajoute ta première entrée ci-dessus.
+          </p>
+        ) : (
+          filteredEntries.map((entry) => (
+            <div
+              key={entry.id}
+              className="flex items-start justify-between rounded-2xl border border-border bg-surface p-4"
+            >
+              <div>
+                <p className="font-medium text-ink">{entry.question}</p>
+                <p className="mt-1 text-sm text-ink-soft">{entry.answer}</p>
               </div>
-            ))
-          )}
-        </div>
-      )}
+              <button
+                onClick={() => handleDelete(entry.id)}
+                className="shrink-0 text-xs text-danger hover:underline"
+              >
+                Supprimer
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
