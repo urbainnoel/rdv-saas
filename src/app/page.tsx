@@ -4,6 +4,7 @@ import { googleConfigured } from "@/lib/google";
 import PhoneMockup from "@/components/landing/PhoneMockup";
 import LandingMenu from "@/components/landing/LandingMenu";
 import AgendaCorner from "@/components/AgendaCorner";
+import { LegalLinks } from "@/components/LegalPage";
 
 export default async function Home() {
   // Lu à chaque requête : le bouton Google n'apparaît que s'il est configuré.
@@ -176,9 +177,10 @@ export default async function Home() {
       </main>
 
       <footer className="border-t border-border bg-paper py-8">
-        <p className="mx-auto max-w-[1160px] px-5 text-sm font-medium text-ink-faint sm:px-8 lg:px-12">
-          RDV Assistant — vos clients réservent seuls. Vous, vous travaillez.
-        </p>
+        <div className="mx-auto flex max-w-[1160px] flex-col gap-2 px-5 text-sm font-medium text-ink-faint sm:px-8 lg:px-12">
+          <p>RDV Assistant — vos clients réservent seuls. Vous, vous travaillez.</p>
+          <LegalLinks />
+        </div>
       </footer>
     </div>
   );

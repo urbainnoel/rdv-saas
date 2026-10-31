@@ -112,6 +112,18 @@ export default function SignupForm({
         </button>
       </form>
 
+      <p className="mt-4 text-center text-xs leading-relaxed text-ink-faint">
+        En créant ton compte, tu acceptes les{" "}
+        <Link href="/conditions" className="underline hover:text-forest">
+          conditions d&apos;utilisation
+        </Link>{" "}
+        et la{" "}
+        <Link href="/confidentialite" className="underline hover:text-forest">
+          politique de confidentialité
+        </Link>
+        .
+      </p>
+
       <p className="mt-6 text-center text-sm text-ink-soft">
         Déjà un compte ?{" "}
         <Link href="/login" className="font-medium text-forest underline">
