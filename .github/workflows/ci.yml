@@ -1,0 +1,54 @@
+# Contrôle continu : à chaque push et à chaque pull request, on vérifie que
+# le code passe le linter, les tests automatiques et la compilation.
+# Aucune base de données ni aucun secret n'est utilisé : les tests tournent
+# sur une base Postgres en mémoire (pglite) et le build reçoit des valeurs
+# factices. On lance `npx next build` et PAS `npm run build`, qui appliquerait
+# les migrations sur la base de production.
+name: Contrôle continu
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+# Un nouveau push sur la même branche annule la vérification précédente.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verifier:
+    name: Lint, tests et build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installer les dépendances
+        id: install
+        run: npm ci
+
+      - name: Linter
+        run: npx eslint src
+
+      # Les étapes suivantes tournent même si le linter échoue, pour voir
+      # d'un coup d'œil l'état des tests et du build.
+      - name: Tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm test
+
+      - name: Build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        env:
+          DATABASE_URL: postgresql://user:pass@localhost:5432/db
+          SESSION_SECRET: ci-factice-0123456789abcdefghijklmnopqrs
+        run: npx next build
